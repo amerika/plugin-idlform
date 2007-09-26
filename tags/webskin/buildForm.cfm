@@ -40,7 +40,29 @@
 			<!--- get formitem data --->
 			<cfset oFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
 			
-			<cfif oFormItem.type neq "hidden"><cfoutput><fieldset></cfoutput></cfif>
+			<cfif oFormItem.type neq "hidden">
+			
+			<!--- Add classes --->
+				<cfsavecontent variable="fieldsetClasses">
+					<cfif trim(oFormItem.width) NEQ "" OR trim(oFormItem.class) NEQ "">
+						<cfoutput> class="</cfoutput> <!--- Start class --->
+							
+							<cfif trim(oFormItem.width) NEQ "">
+								<cfoutput>#trim(oFormItem.width)# </cfoutput>
+							</cfif>
+							
+							<cfif trim(oFormItem.class) NEQ "">
+								<cfoutput>#trim(oFormItem.class)#</cfoutput>
+							</cfif>
+							
+							
+						<cfoutput>" </cfoutput> <!--- End class --->
+					</cfif>
+				</cfsavecontent>
+				
+				<cfoutput>#"<fieldset" & fieldsetClasses & ">"#</cfoutput>
+				
+			</cfif>
 								
 					<!--- display (or not) label --->
 					<cfif not ListFind(noLabel,oFormItem.type)>
