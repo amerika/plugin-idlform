@@ -7,7 +7,7 @@
 		</cfinvoke>
 	#stObj.sendt#
 <cfelse>
-<h1>#stObj.title#</h1>
+<h1 class="idlform">#stObj.title#</h1>
 	<!--- set comma delimeted list with input types which should not have a label  --->
 	<cfset noLabel = "statictext">
 	<div class="description">#stObj.formheader#</div>
