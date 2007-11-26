@@ -26,6 +26,11 @@ form.idlform input.text {		width:250px;
 								padding-left:3px;
 								line-height:1em;}
 
+form.idlform textarea {			width:250px;
+								height:100px;
+								padding:3px;}
+
 form.idlform input.submit {		width:120px;
 								height:25px;
-								line-height:1em;}
+								line-height:1em;
+								margin-left:10px;}
