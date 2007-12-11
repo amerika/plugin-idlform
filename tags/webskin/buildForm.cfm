@@ -1,6 +1,7 @@
 ﻿<cfsetting enablecfoutputonly="yes" />
 
 <cfparam name="attributes.objectID" default="" />	<!--- The objectID of the form --->
+<cfparam name="attributes.formInfo" default="" /> 	<!--- The form info text --->
 <cfparam name="attributes.sendtText" default="" /> 	<!--- The form sendt text --->
 <cfparam name="attributes.submitText" default="" />	<!--- The text in the submitbutton --->
 <cfparam name="attributes.aFormItems" default="" />	<!--- The array with formitems objectIDs --->
@@ -30,6 +31,9 @@
 		<cfset noLabel = "hidden">
 		
 		<cfoutput>
+			<cfif trim(attributes.formInfo) NEQ "">
+				<p>#attributes.formInfo#</p>
+			</cfif>
 			<form action="" method="post" enctype="multipart/form-data" name="idlform"<cfif attributes.class NEQ ""> class="#attributes.class#"<cfelse> class="idlform"</cfif><cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
 		</cfoutput>
 		
