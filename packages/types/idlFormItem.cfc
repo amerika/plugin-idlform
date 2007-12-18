@@ -8,6 +8,7 @@
 	<cfproperty name="linebreak" ftfieldset="Layout (advanced)" type="boolean" hint="If there should be a linebreak after the item or not" required="yes" default="1" ftlabel="Linebreak after?" ftseq="5">
 	<cfproperty name="width" ftfieldset="Layout (advanced)" type="string" fttype="list" ftlist="w33percent:33% width,w66percent:66% width,:Whole width" hint="Width class names for html class attribute" required="false" default="" ftlabel="Class name" ftseq="6">
 	<cfproperty name="class" ftfieldset="Layout (advanced)" type="string" hint="class name for html class attribute" required="false" default="" ftlabel="Class name" ftseq="7">
+	<cfproperty name="cssID" ftfieldset="Layout (advanced)" type="string" hint="name for html id attribute" required="false" default="" ftlabel="ID name" ftseq="8">
 	
 	<!--- <cffunction name="afterSave" access="public" output="true">
 		<cfoutput>
