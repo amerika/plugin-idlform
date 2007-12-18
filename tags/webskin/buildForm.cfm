@@ -28,7 +28,7 @@
 
 		<!--- 	set comma delimeted list with input types which should not have a label - 
 				hidden should ALWAYS be in this list  --->
-		<cfset noLabel = "hidden">
+		<cfset noLabel = "hidden,statictext">
 		
 		<cfoutput>
 			<cfif trim(attributes.formInfo) NEQ "">

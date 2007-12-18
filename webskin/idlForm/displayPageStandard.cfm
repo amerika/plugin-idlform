@@ -9,7 +9,7 @@
 <cfelse>
 <h1 class="idlform">#stObj.title#</h1>
 	<!--- set comma delimeted list with input types which should not have a label  --->
-	<cfset noLabel = "statictext">
+	<cfset noLabel = "hidden,statictext">
 	<div class="description">#stObj.formheader#</div>
 		<form action="" method="post" enctype="multipart/form-data" name="editform" class="idlform">
 		<fieldset>
