@@ -121,7 +121,7 @@
 						</cfcase>
 						<cfcase value="statictext">
 							<cfoutput>
-							#oFormItem.initValue#
+							<span class="statictext">#oFormItem.initValue#</span>
 							</cfoutput>
 						</cfcase>
 						<cfcase value="hidden">

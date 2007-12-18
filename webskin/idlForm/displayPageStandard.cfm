@@ -50,7 +50,7 @@
 							<input name="#oFormItem.objectid#" type="file" />
 						</cfcase>
 						<cfcase value="statictext">
-						#oFormItem.initValue#
+						<span class="statictext">#oFormItem.initValue#</span>
 						</cfcase>
 					</cfswitch>
 				</div>
