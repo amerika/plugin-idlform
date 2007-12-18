@@ -45,10 +45,11 @@
 			<cfset oFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
 			
 			<cfif oFormItem.type neq "hidden">
-			
-			<!--- Add classes --->
+				
+				<!--- Add classes --->
 				<cfsavecontent variable="fieldsetClasses">
 					<cfif trim(oFormItem.width) NEQ "" OR trim(oFormItem.class) NEQ "">
+	
 						<cfoutput> class="</cfoutput> <!--- Start class --->
 							
 							<cfif trim(oFormItem.width) NEQ "">
@@ -59,94 +60,102 @@
 								<cfoutput>#trim(oFormItem.class)#</cfoutput>
 							</cfif>
 							
-							
 						<cfoutput>" </cfoutput> <!--- End class --->
 					</cfif>
+					
 				</cfsavecontent>
-				
+					
 				<cfoutput>#"<fieldset" & fieldsetClasses & ">"#</cfoutput>
 				
 			</cfif>
 								
-					<!--- display (or not) label --->
-					<cfif not ListFind(noLabel,oFormItem.type)>
+			<!--- display (or not) label --->
+			<cfif not ListFind(noLabel,oFormItem.type)>
 
-					<cfoutput><label for="#oFormItem.objectid#"></cfoutput>
+				<cfoutput><label for="#oFormItem.objectid#"></cfoutput>
+				<cfif Len(trim(oFormItem.title))><cfoutput>#oFormItem.title#:</cfoutput></cfif>
+				
+				<cfoutput></label></cfoutput>
 						
-					<cfif Len(trim(oFormItem.title))><cfoutput>#oFormItem.title#:</cfoutput></cfif>
+			</cfif>
+			
+			<cfif oFormItem.type NEQ "hidden" AND oFormItem.cssID NEQ "">
+				<cfset thisCssID = ' id="#oFormItem.cssID#"' />
+			<cfelse>
+				<cfset thisCssID = "" />
+			</cfif>
+			
+			<cfswitch expression="#oFormItem.type#">
+				<cfcase value="textfield">
+					 <cfoutput>
+					<input name="#oFormItem.objectid#" type="text" class="text" value="#oFormItem.initValue#"#thisCssID# />
+					</cfoutput>
+				</cfcase>
+				<cfcase value="textarea">
+					<cfoutput>
+					<textarea name="#oFormItem.objectid#" wrap="virtual"#thisCssID#>#oFormItem.initValue#</textarea>
+					</cfoutput>
+				</cfcase>
+				<cfcase value="checkbox">
+					<cfoutput>
+					<input name="#oFormItem.objectid#" type="checkbox" class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					</cfoutput>
+				</cfcase>
+				<cfcase value="radiobutton">
+					<cfoutput>
+					<input name="#oFormItem.name#" type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					</cfoutput>
+				</cfcase>
+				<cfcase value="list">
+					<cfoutput>
+					<select name="#oFormItem.objectid#"#thisCssID#>
+					</cfoutput>
 					
-					<cfoutput></label></cfoutput>
-						
-					</cfif>
-					<cfswitch expression="#oFormItem.type#">
-						<cfcase value="textfield">
-							 <cfoutput>
-							<input name="#oFormItem.objectid#" type="text" class="text" value="#oFormItem.initValue#" />
-							</cfoutput>
-						</cfcase>
-						<cfcase value="textarea">
-							<cfoutput>
-							<textarea name="#oFormItem.objectid#" wrap="virtual">#oFormItem.initValue#</textarea>
-							</cfoutput>
-						</cfcase>
-						<cfcase value="checkbox">
-							<cfoutput>
-							<input name="#oFormItem.objectid#" type="checkbox" class="checkbox" value="#oFormItem.initValue#" <cfif oFormItem.initValue is 1>checked</cfif> />
-							</cfoutput>
-						</cfcase>
-						<cfcase value="radiobutton">
-							<cfoutput>
-							<input name="#oFormItem.name#" type="radio" class="radio" value="#oFormItem.initValue#" <cfif oFormItem.initValue is 1>checked</cfif> />
-							</cfoutput>
-						</cfcase>
-						<cfcase value="list">
-							<cfoutput>
-							<select name="#oFormItem.objectid#">
-							</cfoutput>
-							
-							<cfloop list="#oFormItem.initValue#" index="i">
-								<cfoutput>
-								<option value="#i#">#i#</option>
-								</cfoutput>
-							</cfloop>
-							
-							<cfoutput>
-							</select>
-							</cfoutput>
-						</cfcase>
-						<cfcase value="filefield">
-							<cfoutput>
-							<input name="#oFormItem.objectid#" type="file" class="file" />
-							</cfoutput>
-						</cfcase>
-						<cfcase value="statictext">
-							<cfoutput>
-							<span class="statictext">#oFormItem.initValue#</span>
-							</cfoutput>
-						</cfcase>
-						<cfcase value="hidden">
-							<cfoutput>
-								<cfif Left(oFormItem.initValue, "1") is "##" and Right(oFormItem.initValue, "1") is "##">
-									<cfset thisvalue = #Evaluate(oFormItem.initValue)#>
-								<cfelse>
-									<cfset thisvalue = oFormItem.initValue>
-								</cfif>
-								<input type="hidden" name="#oFormItem.objectid#" value="#thisvalue#" />
-							</cfoutput>
-						</cfcase>
-					</cfswitch>
+					<cfloop list="#oFormItem.initValue#" index="i">
+						<cfoutput>
+						<option value="#i#">#i#</option>
+						</cfoutput>
+					</cfloop>
 					
-					<cfif oFormItem.type neq "hidden">
-						<cfoutput></fieldset></cfoutput>
-						<cfif oFormItem.linebreak is 1><cfoutput><br /></cfoutput></cfif>
-					</cfif>
+					<cfoutput>
+					</select>
+					</cfoutput>
+				</cfcase>
+				<cfcase value="filefield">
+					<cfoutput>
+					<input name="#oFormItem.objectid#" type="file" class="file"#thisCssID# />
+					</cfoutput>
+				</cfcase>
+				<cfcase value="statictext">
+					<cfoutput>
+					<span class="statictext">#oFormItem.initValue#</span>
+					</cfoutput>
+				</cfcase>
+				<cfcase value="hidden">
+					<cfoutput>
+						<cfif Left(oFormItem.initValue, "1") is "##" and Right(oFormItem.initValue, "1") is "##">
+							<cfset thisvalue = #Evaluate(oFormItem.initValue)#>
+						<cfelse>
+							<cfset thisvalue = oFormItem.initValue>
+						</cfif>
+						<input type="hidden" name="#oFormItem.objectid#" value="#thisvalue#" />
+					</cfoutput>
+				</cfcase>
+			</cfswitch>
+			
+			<cfif oFormItem.type neq "hidden">
+				<cfoutput></fieldset></cfoutput>
+				<cfif oFormItem.linebreak is 1><cfoutput><br /></cfoutput></cfif>
+			</cfif>
 				
 			</cfloop>
+			
 			<cfoutput>
 				<label for="submitidlform" class="submit">&nbsp;</label>
 				<input type="submit" class="submit" name="submitidlform" value="#attributes.submittext#" />
 			</form>
 			</cfoutput>
+			
 		</cfsavecontent>
 	</cfif>
 
