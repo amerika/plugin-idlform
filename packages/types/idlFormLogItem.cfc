@@ -36,24 +36,24 @@
 					'#arguments.formLogID#',
 					<cfif oFormItem.type is "radiobutton">
 						'#oFormItem.title#',
-						'#formData[oFormItem.name]#'
+						'#formData[oFormItem.name]#',
 					<cfelseif oFormItem.type is "filefield">
 						'#oFormItem.title#',
 						<cfif StructKeyExists(uploadfile,oFormItem.objectid)>
-						'#uploadfile[oFormItem.objectid]#'
+						'#uploadfile[oFormItem.objectid]#',
 						<cfelse>
-						'No file uploaded'
+						'No file uploaded',
 						</cfif>
 					<cfelse>
 						'#oFormItem.title#',
 						<cfif StructKeyExists(formData,oFormItem.objectid)>
-						'#formData[oFormItem.objectid]#'
+						'#formData[oFormItem.objectid]#',
 						<cfelse>
-						''
-						</cfif>,
 						'',
-						''
+						</cfif>
 					</cfif>
+					'',
+					''
 				)
 			</cfquery>
 				
