@@ -1,4 +1,4 @@
-<cfcomponent hint="Form log item" extends="farcry.core.packages.types.types" output="false">
+<cfcomponent displayname="Form Log Item" hint="Form log item" extends="farcry.core.packages.types.types" output="false">
 	
 	<cfproperty name="formLogID" type="uuid" hint="ID of formLog item belongs to" required="no">
 	<cfproperty name="title" type="string" hint="Form Item title" required="yes" default="">
