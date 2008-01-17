@@ -22,9 +22,122 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 <cfparam name="attributes.ajax" default="false" />		<!--- If we want to use Ajax submitions at a later time!!! --->
 <cfparam name="skipValidation" default="false">
 
+<cfparam name="errormessage" default="">
+
 <cfif thistag.executionMode eq "Start">
 
 	<cfif StructKeyExists(form,"submitidlform")>
+		
+		<!--- server side validation --->
+			
+			<cfset oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem")>
+		
+			<!--- Loop through the form items --->
+			<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
+				
+				<!--- Get info about this item --->
+				<cfset oFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
+				<cfdump var="#oFormItem#">
+				<cfset isValid = true>
+				
+				<!--- if the form is of type textfield or textarea we do the following validation --->
+				<cfif oFormItem.type is "textfield" or oFormItem.type is "textarea">
+					
+					<!--- check if it is required --->
+					<cfif (oFormItem.validateRequired is 1) and (len(trim(form[oFormItem.objectID])) is 0)>
+						<cfset isValid = false>
+					</cfif>
+					
+					<cfif oFormItem.validate is "digits" or oFormValidate is "number">
+					
+						<cfif IsNumeric(form[oFormItem.objectID])>
+						
+							<!--- check if it has a minimum value --->
+							<cfif IsNumeric(oFormItem.validateMinLength) and oFormItem.validateMinValue gt form[oFormItem.objectID]>
+								<cfset isValid = false>
+							</cfif>
+							
+							<!--- check if it has a maximum value --->
+							<cfif IsNumeric(oFormItem.validateMaxLength) and oFormItem.validateMaxValue lt form[oFormItem.objectID]>
+								<cfset isValid = false>
+							</cfif>
+						
+						</cfif>
+					
+					<cfelse>
+						
+						<!--- check if it has a minimum length --->
+						<cfif IsNumeric(oFormItem.validateMinLength) and oFormItem.validateMinLength gt len(trim(form[oFormItem.objectID]))>
+							<cfset isValid = false>
+						</cfif>
+						
+						<!--- check if it has a maximum length --->
+						<cfif IsNumeric(oFormItem.validateMaxLength) and oFormItem.validateMaxLength lt len(trim(form[oFormItem.objectID]))>
+							<cfset isValid = false>
+						</cfif>
+						
+					</cfif>
+					
+					<cfswitch expression="oFormItem.validate">
+						
+						<cfcase value="digits">
+							<cfif not IsValid(integer,form[oFormItem.objectID])>
+								<cfset isValid = false>
+							</cfif>
+						</cfcase>
+						
+						<cfcase value="number">
+							<cfif not IsValid(numeric,form[oFormItem.objectID])>
+								<cfset isValid = false>
+							</cfif>
+						</cfcase>
+						
+						<cfcase value="date">
+							<cfif not IsValid(eurodate,form[oFormItem.objectID])>
+								<cfset isValid = false>
+							</cfif>
+						</cfcase>
+						
+						<cfcase value="creditcard">
+							<cfif not IsValid(creditcard,form[oFormItem.objectID])>
+								<cfset isValid = false>
+							</cfif>
+						</cfcase>
+						
+						<cfcase value="url">
+							<cfif not IsValid(URL,form[oFormItem.objectID])>
+								<cfset isValid = false>
+							</cfif>
+						</cfcase>
+						
+						<cfcase value="email">
+							<cfif not IsValid(email,form[oFormItem.objectID])>
+								<cfset isValid = false>
+							</cfif>
+						</cfcase>
+						
+					</cfswitch>
+
+				</cfif>
+				
+				<!--- if the form is of type checkbox or radiobutton we do the following validation --->
+				<cfif oFormItem.type is "textfield" or oFormItem.type is "textarea">
+				
+				</cfif>
+				
+				<cfif isValid is false>
+					<!--- add info to the error message --->
+					<cfset errorMessage = Insert("#oFormItem.label#: #oFormItem.validateErrorMessage#< /br>", errorMessage, Len(errorMessage))
+				</cfif>
+				
+			</cfloop>
+			
+	</cfif>
+		
+	
+	<!--- check if form is submitted and validation passed --->
+	<cfif StructKeyExists(form,"submitidlform") and Len(errormessage) is 0>
+		
 		<!--- send the content of the submited form by e-mail --->
 		<cfinvoke component="farcry.plugins.idlForm.packages.types.idlForm" method="submit">
 			<cfinvokeargument name="objectId" value="#attributes.objectId#"/>
@@ -37,6 +150,14 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 		</cfsavecontent>
 		
 	<cfelse>
+	
+		<cfif Len(errormessage) gt 0>
+			<cfoutput>
+				<div class="errorMessage">
+					#errorMessage#
+				</div>
+			</cfoutput>
+		</cfif>
 		
 		<cfset oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem")>
 
@@ -53,12 +174,11 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				<cfset attributes.class = "idlform">
 			</cfif>
 			
-			<!--- <form action="" method="post" enctype="multipart/form-data" name="idlform"<cfif attributes.class NEQ ""> class="#attributes.class#"<cfelse> class="idlform"</cfif><cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>> --->			
 			<cftry>
-			<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="jquery"  css_class="#attributes.class#" id="#attributes.id#">
+				<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="jquery"  css_class="#attributes.class#" id="#attributes.id#">
 			<cfcatch type="any">
-			<form action="" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#"<cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
-			<cfset skipValidation = "true">
+				<form action="" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#"<cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
+				<cfset skipValidation = "true">
 			</cfcatch>
 			</cftry>
 		</cfoutput>
