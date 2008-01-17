@@ -32,6 +32,8 @@
 	<span class="idlformwidth">
 		<cfif #stObj.width# EQ "w33percent">
 			<span class="idlelementwidth" style="width: 20px;">&nbsp;</span>
+		<cfelseif #stObj.width# EQ "w50percent">
+			<span class="idlelementwidth" style="width: 30px;">&nbsp;</span>
 		<cfelseif #stObj.width# EQ "w66percent">
 			<span class="idlelementwidth" style="width: 40px;">&nbsp;</span>
 		<cfelse>
