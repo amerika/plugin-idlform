@@ -1,4 +1,12 @@
-﻿<cfsetting enablecfoutputonly="yes" />
+﻿<!--- 
+
+This template will attemt to use the cfjq_forms custom tag for form client side validation services.
+Should the custom tag not be installed on the server the template will run like a normal attributes.placeError form without any validation.
+
+The cfjq_forms custom tag can also be used to easily add ajax behaviour to form submition at a later time.
+--->
+
+<cfsetting enablecfoutputonly="yes" />
 
 <cfparam name="attributes.objectID" default="" />	<!--- The objectID of the form --->
 <cfparam name="attributes.formInfo" default="" /> 	<!--- The form info text --->
@@ -7,6 +15,12 @@
 <cfparam name="attributes.aFormItems" default="" />	<!--- The array with formitems objectIDs --->
 <cfparam name="attributes.class" default="" />		<!--- form tags class --->
 <cfparam name="attributes.id" default="" />			<!--- form tags id --->
+
+<!--- For validation: --->
+<cfparam name="attributes.form_class" default="cfjq_form1"/> <!--- !!! validation will only work on 1 form per page right now --->
+<cfparam name="attributes.placeError" default="inline"/>	<!----if "box" validation error message will be placed in a box over the form--->
+<cfparam name="attributes.ajax" default="false" />		<!--- If we want to use Ajax submitions at a later time!!! --->
+<cfparam name="skipValidation" default="false">
 
 <cfif thistag.executionMode eq "Start">
 
@@ -34,7 +48,19 @@
 			<cfif trim(attributes.formInfo) NEQ "">
 				<p>#attributes.formInfo#</p>
 			</cfif>
-			<form action="" method="post" enctype="multipart/form-data" name="idlform"<cfif attributes.class NEQ ""> class="#attributes.class#"<cfelse> class="idlform"</cfif><cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
+						
+			<cfif trim(attributes.class) is "">
+				<cfset attributes.class = "idlform">
+			</cfif>
+			
+			<!--- <form action="" method="post" enctype="multipart/form-data" name="idlform"<cfif attributes.class NEQ ""> class="#attributes.class#"<cfelse> class="idlform"</cfif><cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>> --->			
+			<cftry>
+			<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="jquery"  css_class="#attributes.class#" id="#attributes.id#">
+			<cfcatch type="any">
+			<form action="" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#"<cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
+			<cfset skipValidation = "true">
+			</cfcatch>
+			</cftry>
 		</cfoutput>
 		
 		<cfsavecontent variable="tagoutput">
@@ -68,6 +94,55 @@
 				<cfoutput>#"<fieldset" & fieldsetClasses & ">"#</cfoutput>
 				
 			</cfif>
+			
+			<!--- create validation rule --->
+			<cfset validationRule = "">
+			
+			<cfif skipValidation eq false>
+			
+				<cfif oFormItem.validateRequired is true>
+					<cfset validationRule = ListAppend(validationRule,"required:true")>
+				</cfif>
+				
+				<cfswitch expression="#oFormItem.validateType#">
+					<cfcase value="url">
+						<cfset validationRule = ListAppend(validationRule,"url:true")>
+					</cfcase>
+					<cfcase value="email">
+						<cfset validationRule = ListAppend(validationRule,"email:true")>
+					</cfcase>
+					<cfcase value="date">
+						<cfset validationRule = ListAppend(validationRule,"dateDE:true")>
+					</cfcase>
+					<cfcase value="creditcard">
+						<cfset validationRule = ListAppend(validationRule,"creditcard:true")>
+					</cfcase>
+					<cfcase value="digits">
+						<cfset validationRule = ListAppend(validationRule,"digits:true")>
+					</cfcase>
+					<cfcase value="number">
+						<cfset validationRule = ListAppend(validationRule,"numberDE:true")>
+					</cfcase>
+				</cfswitch>
+				
+				<cfif IsNumeric(oFormItem.validateMinLength)>
+					<cfif (oFormItem.validateType is "digits") or (oFormItem.validateType is "number")>
+						<cfset validationRule = ListAppend(validationRule,"minValue:#oFormItem.validateMinLength#")>
+					<cfelse>
+						<cfset validationRule = ListAppend(validationRule,"minLength:#oFormItem.validateMinLength#")>
+					</cfif>
+				</cfif>
+				
+				<cfif IsNumeric(oFormItem.validateMaxLength)>
+					<cfif (oFormItem.validateType is "digits") or (oFormItem.validateType is "number")>
+						<cfset validationRule = ListAppend(validationRule,"maxValue:#oFormItem.validateMaxLength#")>
+					<cfelse>	
+						<cfset validationRule = ListAppend(validationRule,"maxLength:#oFormItem.validateMaxLength#")>
+					</cfif>
+				</cfif>
+				
+			</cfif>
+			
 								
 			<!--- display (or not) label --->
 			<cfif not ListFind(noLabel,oFormItem.type)>
@@ -88,27 +163,27 @@
 			<cfswitch expression="#oFormItem.type#">
 				<cfcase value="textfield">
 					 <cfoutput>
-					<input name="#oFormItem.objectid#" type="text" class="text" value="#oFormItem.initValue#"#thisCssID# />
+					<input name="#oFormItem.objectid#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="text" class="<cfif ListLen(validationRule) gt 0>{#validationRule#}</cfif> text" value="#oFormItem.initValue#"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="textarea">
 					<cfoutput>
-					<textarea name="#oFormItem.objectid#" wrap="virtual"#thisCssID#>#oFormItem.initValue#</textarea>
+					<textarea name="#oFormItem.objectid#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> wrap="virtual"#thisCssID#>#oFormItem.initValue#</textarea>
 					</cfoutput>
 				</cfcase>
 				<cfcase value="checkbox">
 					<cfoutput>
-					<input name="#oFormItem.objectid#" type="checkbox" class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					<input name="#oFormItem.name#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="radiobutton">
 					<cfoutput>
-					<input name="#oFormItem.name#" type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					<input name="#oFormItem.name#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="list">
 					<cfoutput>
-					<select name="#oFormItem.objectid#"#thisCssID#>
+					<select <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> name="#oFormItem.objectid#"#thisCssID#>
 					</cfoutput>
 					
 					<cfloop list="#oFormItem.initValue#" index="i">
@@ -123,7 +198,7 @@
 				</cfcase>
 				<cfcase value="filefield">
 					<cfoutput>
-					<input name="#oFormItem.objectid#" type="file" class="file"#thisCssID# />
+					<input <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> name="#oFormItem.objectid#" type="file" class="file"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="statictext">
@@ -154,6 +229,53 @@
 				<label for="submitidlform" class="submit">&nbsp;</label>
 				<input type="submit" class="submit" name="submitidlform" value="#attributes.submittext#" />
 			</form>
+			<!--- 	
+					We use a </form> tag instead of closing the <cf_cfJq_forms> tag due to error due to the FarCry 
+					cfoutput placements.
+					
+					Therefor we must also include some other necasary code (the script bloc bellow).
+			  --->
+				  <cfif skipValidation eq false>
+				  <script type="text/javascript"> 
+					<cfif attributes.ajax>
+						$(document).ready(function() { 
+			    			var options = {
+			    				target:'#attributes.target#',
+								beforeSubmit: function(){
+									$('#attributes.target#').empty();
+									<cfif attributes.loadType eq "text">
+										$('<span class="attributes.loading_class">#attributes.loadMsg#</span>').appendTo($('#attributes.target#'));
+									<cfelseif attributes.loadType eq "img">	
+										$('<img class="attributes.loading_class" src="#attributes.loadMsg#"/>').appendTo($('#attributes.target#'));
+									</cfif>	
+								   }
+								};  
+			    			$(".#attributes.form_class#").validate({
+								<cfif attributes.placeError eq "box">
+								errorContainer: $(".messageBox#request.cfjq_form_progress#"),
+			  					errorLabelContainer: $(".messageBox#request.cfjq_form_progress# ul"),
+			  					wrapper: "li",
+								</cfif>
+			  					submitHandler: function(form) {
+			  						$(form).ajaxSubmit(options);
+			  						}
+							});
+						}); 
+						<cfelse>
+							$(document).ready(function(){
+								<cfif attributes.placeError neq "box">
+									$(".#attributes.form_class#").validate()
+								<cfelse>
+									$(".#attributes.form_class#").validate({
+										errorContainer: $(".messageBox#request.cfjq_form_progress#"),
+			  							errorLabelContainer: $(".messageBox#request.cfjq_form_progress# ul"),
+			  							wrapper: "li"
+										});
+								</cfif>
+							});
+					</cfif>
+				</script>
+				</cfif>
 			</cfoutput>
 			
 		</cfsavecontent>

@@ -38,7 +38,7 @@
 			<span class="idlelementwidth" style="width: 60px;">&nbsp;</span>
 		</cfif>
 	</span>
-	#stObj.title# <a href="/farcry/edittabEdit.cfm?objectid=#stObj.objectID#&ref=overview&typename=idlformitem" onclick="window.open(this.href,'edit','width=600,height=400');return false">Edit</a><cfif stObj.linebreak> (&crarr;)</cfif>
+	#stObj.title# <a href="/farcry/edittabEdit.cfm?objectid=#stObj.objectID#&ref=overview&typename=idlformitem" onclick="window.open(this.href,'edit','width=600,height=600');return false">Edit</a><cfif stObj.linebreak> (&crarr;)</cfif>
 	</cfoutput>
 
 <cfsetting enablecfoutputonly="no" />

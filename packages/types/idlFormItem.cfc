@@ -83,6 +83,60 @@
 		default=""
 		ftlabel="ID name"
 		ftseq="8">
+		
+	<cfproperty
+		name="validateRequired"
+		ftfieldset="Validation"
+		type="boolean"
+		hint="if the form field is required"
+		required="false"
+		default="false"
+		ftlabel="Required"
+		ftseq="9">
+		
+	<cfproperty
+		name="validateType"
+		ftfieldset="Validation"
+		type="string"
+		hint="what type chould it be"
+		required="false"
+		default="none"
+		ftlabel="Type"
+		fttype="list"
+		ftlist="none:None,email:Email,url:Web address,date:Date,creditcard:Credit Card,digits:Digits,number:Number"
+		ftseq="10">
+		
+	<cfproperty
+		name="validateMinLength"
+		ftfieldset="Validation"
+		type="string"
+		fttype="integer"
+		hint="Minimum length of field"
+		required="false"
+		default=""
+		ftlabel="Minimum length"
+		ftseq="11">
+		
+	<cfproperty
+		name="validateMaxLength"
+		ftfieldset="Validation"
+		type="string"
+		fttype="integer"
+		hint="Maximum length of field"
+		required="false"
+		default=""
+		ftlabel="Maximum length"
+		ftseq="12">
+		
+	<cfproperty
+		name="validateErrorMessage"
+		ftfieldset="Validation"
+		type="string"
+		hint="Message to show if validation fails"
+		required="false"
+		default=""
+		ftlabel="Error Message"
+		ftseq="13">
 	
 	<!--- <cffunction name="afterSave" access="public" output="true">
 		<cfoutput>
