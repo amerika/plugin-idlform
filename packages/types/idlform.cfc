@@ -96,13 +96,13 @@
 			<cfloop from="1" to="#arrayLen(arguments.stObj.aFormItems)#" index="i">
 				
 				<cfset oFormItem = oFormItemService.getData(objectID=arguments.stObj.aFormItems[i])>
-				<cfif oFormItem.type is "radiobutton">
-				<tr><td><strong>#oFormItem.title#:</strong></td><td>#arguments.formData[oFormItem.name]#</td></tr>
+				<cfif (oFormItem.type is "radiobutton") or (oFormItem.type is "checkbox")>
+					<tr><td><strong>#oFormItem.title#:</strong></td><td><cfif StructKeyExists(arguments.formData,oFormItem.name)>#arguments.formData[oFormItem.name]#</cfif></td></tr>
 				<cfelseif oFormItem.type is "filefield" and StructKeyExists(arguments.uploadfile,oFormItem.objectid)>
 					<cfmailparam file="#arguments.uploadfile[oFormItem.objectid]#">
 					<tr><td><strong>#oFormItem.title#:</strong></td><td class="or">#ListLast(arguments.uploadfile[oFormItem.objectid],"\")#</td></tr>
 				<cfelse>
-				<tr><td><strong>#oFormItem.title#:</strong></td><td><cfif StructKeyExists(arguments.formData,oFormItem.objectid)>#arguments.formData[oFormItem.objectid]#</cfif></td></tr>
+					<tr><td><strong>#oFormItem.title#:</strong></td><td><cfif StructKeyExists(arguments.formData,oFormItem.objectid)>#arguments.formData[oFormItem.objectid]#</cfif></td></tr>
 				</cfif>
 			</cfloop>
 			</table>

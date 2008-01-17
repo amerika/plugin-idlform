@@ -34,9 +34,13 @@
 					#createODBCDate(Now())#,
 					#createODBCDate(Now())#,
 					'#arguments.formLogID#',
-					<cfif oFormItem.type is "radiobutton">
+					<cfif (oFormItem.type is "radiobutton") or (oFormItem.type is "checkbox")>
 						'#oFormItem.title#',
-						'#formData[oFormItem.name]#',
+						<cfif StructKeyExists(formData,oFormItem.name)>
+							'#formData[oFormItem.name]#',
+						<cfelse>
+							'',
+						</cfif>
 					<cfelseif oFormItem.type is "filefield">
 						'#oFormItem.title#',
 						<cfif StructKeyExists(uploadfile,oFormItem.objectid)>
