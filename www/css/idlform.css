@@ -34,3 +34,20 @@ form.idlform input.submit {		width:120px;
 								height:25px;
 								line-height:1em;
 								margin-left:10px;}
+								
+/* ----------- Some default styling for idlForm validation handling ------------- */
+
+div.idlform_errorMessage {		width:500px;
+								padding:10px;
+								border:solid 1px #F00;
+								background-color:#FED;
+								}
+								
+div.idlform_errorMessage span.label {
+								display:block;
+								float:left;
+								width:250px;
+								margin-right: 15px;}
+}
+
+form.idlform label.error {		border:none;}
