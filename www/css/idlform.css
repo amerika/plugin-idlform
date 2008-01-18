@@ -48,6 +48,9 @@ div.idlform_errorMessage span.label {
 								float:left;
 								width:250px;
 								margin-right: 15px;}
-}
-
-form.idlform label.error {		border:none;}
+								
+div.idlform_errorMessage span.errortext {
+								color:#F00;}
+								
+form.idlform label.error {		border:none;
+								color:#F00;}
