@@ -26,6 +26,16 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 
 <cfif thistag.executionMode eq "Start">
 
+
+<cfif trim(attributes.class) is "">
+	<cfset attributes.class = "idlform">
+</cfif>
+
+<!--- include idlform.css stylesheet - if attributes.class is idlform --->
+<cfif attributes.class is "idlform">
+	<cfhtmlhead text='<link rel="stylesheet" type="text/css" href="/css/idlform.css" media="all" />'>
+</cfif>
+
 	<cfif StructKeyExists(form,"submitidlform")>
 		
 		<!--- server side validation - In the future this should probably be moved to its own validate object --->
@@ -121,13 +131,15 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				</cfif>
 				
 				<!--- if the form is of type checkbox or radiobutton we do the following validation --->
-				<cfif oFormItem.type is "textfield" or oFormItem.type is "textarea">
+				<cfif oFormItem.type is "checkbox" or oFormItem.type is "radiobutton">
+					
+				<!--- TODO: add validation here --->
 				
 				</cfif>
 				
 				<cfif isValid is false>
 					<!--- add info to the error message --->
-					<cfset errorMessage = Insert("#oFormItem.label#: #oFormItem.validateErrorMessage#<br />", errorMessage, Len(errorMessage))>
+					<cfset errorMessage = Insert("<span class='label'>#oFormItem.label#:</span> <span class='errortext'>#oFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
 				</cfif>
 				
 			</cfloop>
@@ -153,7 +165,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 	
 		<cfif Len(errormessage) gt 0>
 			<cfoutput>
-				<div class="errorMessage">
+				<div class="idlform_errorMessage">
 					#errorMessage#
 				</div>
 			</cfoutput>
@@ -168,10 +180,6 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 		<cfoutput>
 			<cfif trim(attributes.formInfo) NEQ "">
 				<p>#attributes.formInfo#</p>
-			</cfif>
-						
-			<cfif trim(attributes.class) is "">
-				<cfset attributes.class = "idlform">
 			</cfif>
 			
 			<cftry>
