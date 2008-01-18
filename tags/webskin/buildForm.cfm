@@ -28,7 +28,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 
 	<cfif StructKeyExists(form,"submitidlform")>
 		
-		<!--- server side validation --->
+		<!--- server side validation - In the future this should probably be moved to its own validate object --->
 			
 			<cfset oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem")>
 		
@@ -37,7 +37,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				
 				<!--- Get info about this item --->
 				<cfset oFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
-				<cfdump var="#oFormItem#">
+
 				<cfset isValid = true>
 				
 				<!--- if the form is of type textfield or textarea we do the following validation --->
@@ -48,7 +48,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 						<cfset isValid = false>
 					</cfif>
 					
-					<cfif oFormItem.validate is "digits" or oFormValidate is "number">
+					<cfif oFormItem.validateType is "digits" or oFormItem.validateType is "number">
 					
 						<cfif IsNumeric(form[oFormItem.objectID])>
 						
@@ -78,7 +78,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 						
 					</cfif>
 					
-					<cfswitch expression="oFormItem.validate">
+					<cfswitch expression="oFormItem.validateType">
 						
 						<cfcase value="digits">
 							<cfif not IsValid(integer,form[oFormItem.objectID])>
@@ -127,7 +127,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				
 				<cfif isValid is false>
 					<!--- add info to the error message --->
-					<cfset errorMessage = Insert("#oFormItem.label#: #oFormItem.validateErrorMessage#< /br>", errorMessage, Len(errorMessage))
+					<cfset errorMessage = Insert("#oFormItem.label#: #oFormItem.validateErrorMessage#<br />", errorMessage, Len(errorMessage))>
 				</cfif>
 				
 			</cfloop>
