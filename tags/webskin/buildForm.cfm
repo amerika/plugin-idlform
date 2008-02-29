@@ -1,4 +1,4 @@
-﻿<!--- 
+<!--- 
 
 This template will attemt to use the cfjq_forms custom tag for form client side validation services.
 Should the custom tag not be installed on the server the template will run like a normal attributes.placeError form without any validation.
@@ -183,7 +183,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			</cfif>
 			
 			<cftry>
-				<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="jquery"  css_class="#attributes.class#" id="#attributes.id#">
+				<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="jquery/cfjq"  css_class="#attributes.class#" id="#attributes.id#">
 			<cfcatch type="any">
 				<form action="" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#"<cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
 				<cfset skipValidation = "true">
