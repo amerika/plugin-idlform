@@ -9,7 +9,7 @@
 	<cfproperty name="displayMethod" type="string" hint="Display method to render this HTML object with." required="yes" default="display" ftlabel="Page template" fttype="webskin" ftprefix="displayPage" ftseq="6">
 	<cfproperty name="aFormItems" type="array" hint="Holds objects to be displayed at this particular node." required="no" default="" 	ftlabel="Form Items" ftjoin="idlFormItem" ftseq="7">
 	
-	<cfproperty name="useCaptcha" type="bolean" hint="If captcha should be used or not." required="no" default="false" ftlabel="Text recognition test" ftseq="10">
+	<cfproperty name="useCaptcha" type="boolean" hint="If captcha should be used or not." required="no" default="false" ftlabel="Text recognition test" ftseq="10">
 	<cfproperty name="captchaLabel" type="string" hint="Text in front of the text recognition field." required="no" default="Fill in the text from the image bellow" ftlabel="Text recognition label" ftjoin="idlFormItem" ftseq="11">
 	<cfproperty name="captchaErrorMessage" type="string" hint="Error to show if text recognition fails." required="no" default="You did not match the image text." ftlabel="Text recognition error message" ftjoin="idlFormItem" ftseq="12">
 
