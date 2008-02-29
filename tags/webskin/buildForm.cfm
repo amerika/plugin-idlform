@@ -276,7 +276,13 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			<cfif not ListFind(noLabel,oFormItem.type)>
 
 				<cfoutput><label for="#oFormItem.objectid#"></cfoutput>
-				<cfif Len(trim(oFormItem.title))><cfoutput>#oFormItem.title#:</cfoutput></cfif>
+				<cfif Len(trim(oFormItem.title))>
+					<cfif oFormItem.validateRequired is true>
+						<cfoutput><span class="required">#oFormItem.title# *</span>:</cfoutput>
+					<cfelse>
+						<cfoutput>#oFormItem.title#:</cfoutput>
+					</cfif>
+				</cfif>
 				
 				<cfoutput></label></cfoutput>
 						

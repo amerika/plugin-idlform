@@ -52,5 +52,7 @@ div.idlform_errorMessage span.label {
 div.idlform_errorMessage span.errortext {
 								color:#F00;}
 								
+form.idlform span.required {	color:#F00;}
+								
 form.idlform label.error {		border:none;
 								color:#F00;}
