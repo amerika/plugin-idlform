@@ -24,6 +24,9 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 
 <cfparam name="errormessage" default="">
 
+<!--- For captcha --->
+<cfparam name="useCaptcha" default="false">
+
 <cfif thistag.executionMode eq "Start">
 
 
@@ -358,6 +361,21 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			</cfif>
 				
 			</cfloop>
+			
+			<!--- CAPTCHA --->
+			<cfif attributes.useCaptcha is true>
+				<!--- initialize the captcha if needed --->
+				<cfif not structKeyExists(application, "captcha") or isDefined("url.init")>
+				   <cfset application.captcha = createObject("component", "farcry.plugins.idlform.captcha.captchaService").init(configFile="/farcry/plugins/idlform/captcha/captcha.xml") />
+				   <cfset application.captcha.setup()>
+				</cfif>
+				<cfoutput>
+				<label for="captcha" class="submit">attributes.captchatext</label>
+				<input type="text" name="captcha"><br />
+				<img src="/captcha/captcha.cfm?hash=#captcha.hash#">
+				<input name="hash" type="hidden" value="#captcha.hash#" />
+				</cfoutput>
+			</cfif>
 			
 			<cfoutput>
 				<label for="submitidlform" class="submit">&nbsp;</label>
