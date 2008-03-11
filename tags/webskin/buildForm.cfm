@@ -10,8 +10,8 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 
 <cfset attributes = caller.instance.stObj>
 
-<cfparam name="attributes.objectID" default="" />	<!--- The objectID of the form --->
-<cfparam name="attributes.formInfo" default="" /> 	<!--- The form info text --->
+<cfparam name="attributes.stObj" default="" />	<!--- The objectID of the form --->
+<cfparam name="attributes.formheader" default="" /> 	<!--- The form info text --->
 <cfparam name="attributes.sendtText" default="" /> 	<!--- The form sendt text --->
 <cfparam name="attributes.submitText" default="" />	<!--- The text in the submitbutton --->
 <cfparam name="attributes.aFormItems" default="" />	<!--- The array with formitems objectIDs --->
@@ -151,13 +151,13 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				
 			</cfloop>
 			
-	</cfif>
-	
-	<!--- Check the captcha --->
-	<cfif attributes.useCaptcha is true>
-		<cfif not application.captcha.validateCaptcha(form.hash, form.captcha)>
-			<cfset errorMessage = Insert("<span class='label'>#Captcha#:</span> <span class='errortext'>#attributes.captchaErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
-		</cfif>
+			<!--- Check the captcha --->
+			<cfif attributes.useCaptcha is true>
+				<cfif not application.captcha.validateCaptcha(form.hash, form.captcha)>
+					<cfset errorMessage = Insert("<span class='label'>#Captcha#:</span> <span class='errortext'>#attributes.captchaErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
+				</cfif>
+			</cfif>
+			
 	</cfif>
 	
 	<!--- check if form is submitted and validation passed --->
@@ -191,8 +191,8 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 		<cfset noLabel = "hidden,statictext">
 		
 		<cfoutput>
-			<cfif trim(attributes.formInfo) NEQ "">
-				<p>#attributes.formInfo#</p>
+			<cfif trim(attributes.formHeader) NEQ "">
+				<p>#attributes.formHeader#</p>
 			</cfif>
 			
 			<cftry>
@@ -371,7 +371,6 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			</cfif>
 				
 			</cfloop>
-			<cfdump var="#attributes#">
 			<!--- CAPTCHA --->
 			<cfif attributes.useCaptcha is true>
 				<!--- initialize the captcha if needed --->
@@ -382,6 +381,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				<cfoutput>
 				<label for="captcha" class="submit">#attributes.captchaLabel#</label>
 				<input type="text" name="captcha"><br />
+				<cfset captcha = application.captcha.createHashReference()>
 				<img src="/captcha/captcha.cfm?hash=#captcha.hash#">
 				<input name="hash" type="hidden" value="#captcha.hash#" />
 				</cfoutput>
