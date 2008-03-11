@@ -8,6 +8,8 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 
 <cfsetting enablecfoutputonly="yes" />
 
+<cfset attributes = caller.instance.stObj>
+
 <cfparam name="attributes.objectID" default="" />	<!--- The objectID of the form --->
 <cfparam name="attributes.formInfo" default="" /> 	<!--- The form info text --->
 <cfparam name="attributes.sendtText" default="" /> 	<!--- The form sendt text --->
@@ -369,7 +371,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			</cfif>
 				
 			</cfloop>
-			
+			<cfdump var="#attributes#">
 			<!--- CAPTCHA --->
 			<cfif attributes.useCaptcha is true>
 				<!--- initialize the captcha if needed --->
