@@ -154,7 +154,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			<!--- Check the captcha --->
 			<cfif attributes.useCaptcha is true>
 				<cfif not application.captcha.validateCaptcha(form.hash, form.captcha)>
-					<cfset errorMessage = Insert("<span class='label'>#captchalabel#:</span> <span class='errortext'>#attributes.captchaErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
+					<cfset errorMessage = Insert("<span class='label'>#attributes.captchalabel#:</span> <span class='errortext'>#attributes.captchaErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
 				</cfif>
 			</cfif>
 			
