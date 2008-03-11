@@ -7,6 +7,6 @@
 	<cfoutput><h1 class="idlform">#stObj.title#</h1></cfoutput>
 
 	<!--- build form --->
-	<skin:buildForm objectID="#stObj.objectID#" formInfo="#stObj.formheader#" sendtText="#stObj.sendt#" submitText="#stObj.submitText#" aFormItems="#stObj.aFormItems#"></skin:buildForm>
+	<skin:buildForm></skin:buildForm>
 
 <cfsetting enablecfoutputonly="no" />
