@@ -171,7 +171,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 		
 		<cfsavecontent variable="tagoutput">
 			<!--- confirmation: respons to the user  --->
-			<cfoutput>#attributes.sendtText#</cfoutput>
+			<cfoutput>#attributes.sendt#</cfoutput>
 		</cfsavecontent>
 		
 	<cfelse>
