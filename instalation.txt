@@ -1,0 +1,5 @@
+I CF admin må det være opprettet en custom tag mapping til D:\inetpub\libraries\cf_restricted\customtags
+
+I IIS må det opprettes to virtual folders:
+jquery:		D:\inetpub\libraries\js\jquery
+idlform:	plugins\idlform\www
