@@ -5,7 +5,9 @@
 		<subsection id="idlformssection" permission="MainNavContentTab" sidebar="custom/sidebar.cfm" content="inc/content_overview.html" label="Forms">
 			<menu label="Form administration">
 				<menuitem label="Forms" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlform.cfm" />
-				<menuitem label="Form log" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformLog.cfm" />
+				<menuitem label="Form log" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformLog.cfm" /><menuitem
+					label="Reports" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformReports.cfm">
+</menuitem>
 			</menu>
 		</subsection>
 	</section>

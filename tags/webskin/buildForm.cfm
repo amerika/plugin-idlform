@@ -154,7 +154,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			<!--- Check the captcha --->
 			<cfif attributes.useCaptcha is true>
 				<cfif not application.captcha.validateCaptcha(form.hash, form.captcha)>
-					<cfset errorMessage = Insert("<span class='label'>#Captcha#:</span> <span class='errortext'>#attributes.captchaErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
+					<cfset errorMessage = Insert("<span class='label'>#attributes.captchalabel#:</span> <span class='errortext'>#attributes.captchaErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
 				</cfif>
 			</cfif>
 			
@@ -196,9 +196,9 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			</cfif>
 			
 			<cftry>
-				<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="jquery/cfjq"  css_class="#attributes.class#" id="#attributes.id#">
+				<cf_cfJq_forms action="#cgi.SCRIPT_NAME#?#cgi.query_string#" enctype="multipart/form-data" method="post" jqFolder="jquery/cfjq"  css_class="#attributes.class#" id="#attributes.id#">
 			<cfcatch type="any">
-				<form action="" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#"<cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
+				<form action="#cgi.SCRIPT_NAME#?#cgi.query_string#" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#"<cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
 				<cfset skipValidation = "true">
 			</cfcatch>
 			</cftry>
@@ -320,12 +320,12 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				</cfcase>
 				<cfcase value="checkbox">
 					<cfoutput>
-					<input name="#oFormItem.name#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					<input name="#oFormItem.objectid#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="X"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="radiobutton">
 					<cfoutput>
-					<input name="#oFormItem.name#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					<input <cfif Trim(oFormItem.name) is "">name="#oFormItem.objectID#"<cfelse>name="#oFormItem.name#"</cfif> <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.objectID#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="list">
@@ -379,11 +379,13 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				   <cfset application.captcha.setup()>
 				</cfif>
 				<cfoutput>
+				<fieldset>
 				<label for="captcha" class="submit">#attributes.captchaLabel#</label>
 				<input type="text" name="captcha"><br />
 				<cfset captcha = application.captcha.createHashReference()>
-				<img src="/captcha/captcha.cfm?hash=#captcha.hash#">
+				<img src="/captcha/captcha.cfm?hash=#captcha.hash#" style="margin-top:15px;">
 				<input name="hash" type="hidden" value="#captcha.hash#" />
+				</fieldset>
 				</cfoutput>
 			</cfif>
 			
