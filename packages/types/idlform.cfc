@@ -1,17 +1,119 @@
 <cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="false" buseintree="true">
 	
-	<!--- type properties --->
-	<cfproperty name="title" type="string" hint="Form title" required="yes" default="" ftlabel="Form title" ftseq="1">
-	<cfproperty name="formheader" type="longchar" hint="Description / introdoctury text for the form" required="no" default="Please fill in the form below:" ftlabel="Introdoctury text" ftseq="2">
-	<cfproperty name="sendt" type="longchar" hint="Text to display when form is submitted" required="no" default="Thank you!" ftlabel="Form submited text"  ftseq="3">
-	<cfproperty name="receiver" type="string" hint="E-mail address of the receiver of the form" required="yes" default="" ftlabel="Receiver (email)" ftseq="5">
-	<cfproperty name="submittext" type="string" hint="Text for the submit button" required="yes" default="Send" ftlabel="Text for the submit button" ftseq="4">
-	<cfproperty name="displayMethod" type="string" hint="Display method to render this HTML object with." required="yes" default="display" ftlabel="Page template" fttype="webskin" ftprefix="displayPage" ftseq="6">
-	<cfproperty name="aFormItems" type="array" hint="Holds objects to be displayed at this particular node." required="no" default="" 	ftlabel="Form Items" ftjoin="idlFormItem" ftseq="7">
+	<!--- // Standard type properties                                 
+	----------------------------------------------------------------->
+	<cfproperty name="title"
+				ftlabel="Form title"
+				ftWizardStep="General"
+				ftFieldset="Form details"
+				ftValidation="required"
+				type="string"
+				hint="Form title"
+				required="yes"
+				default=""
+				ftseq="1">
+
+	<cfproperty name="formheader"
+				ftlabel="Introdoctury text"
+				ftWizardStep="General"
+				ftFieldset="Form details"
+				type="longchar"
+				hint="Description / introdoctury text for the form"
+				required="no"
+				default="Please fill in the form below:"
+				ftseq="2">
+				
+	<cfproperty name="sendt"
+				ftlabel="Form submited text"
+				ftWizardStep="General"
+				ftFieldset="Form details"
+				type="longchar"
+				hint="Text to display when form is submitted"
+				required="no"
+				default="Thank you!"
+				ftseq="3">
+				
+	<cfproperty name="receiver"
+				ftlabel="Receiver (email)"
+				ftWizardStep="General"
+				ftFieldset="Form details"
+				ftValidation="required"
+				type="string"
+				hint="E-mail address of the receiver of the form"
+				required="yes"
+				default=""
+				ftseq="5">
+				
+	<cfproperty name="submittext"
+				ftlabel="Text for the submit button"
+				ftWizardStep="General"
+				ftFieldset="Form details"
+				type="string"
+				hint="Text for the submit button"
+				required="yes"
+				default="Send"
+				ftseq="4">
+				
+	<cfproperty name="displayMethod"
+				ftlabel="Form Template"
+				ftWizardStep="General"
+				ftFieldset="Form details"
+				type="string"
+				hint="Display method to render this HTML object with."
+				required="yes"
+				default="display"
+				fttype="webskin"
+				ftprefix="displayPage"
+				ftseq="6">
+				
+	<cfproperty name="aFormItems"
+				ftlabel="Selected Form Items"
+				ftWizardStep="General"
+				ftFieldset="Form items"
+				type="array"
+				hint="Holds objects to be displayed at this particular node."
+				required="no" default=""
+				ftjoin="idlFormItem"
+				ftseq="7">
+				
+
+	<!--- // Advanced type properties (captcha)                       
+	----------------------------------------------------------------->
 	
-	<cfproperty name="useCaptcha" type="boolean" hint="If captcha should be used or not." required="no" default="false" ftlabel="Text recognition test" ftseq="10">
-	<cfproperty name="captchaLabel" type="string" hint="Text in front of the text recognition field." required="no" default="Fill in the text from the image bellow" ftlabel="Text recognition label" ftjoin="idlFormItem" ftseq="11">
-	<cfproperty name="captchaErrorMessage" type="string" hint="Error to show if text recognition fails." required="no" default="You did not match the image text." ftlabel="Text recognition error message" ftjoin="idlFormItem" ftseq="12">
+	<cfproperty name="useCaptcha"
+				ftlabel="Enable Captcha?"
+				ftWizardStep="Advanced"
+				ftFieldset="Captcha settings"
+				fthelptitle="What is Captcha?"
+				fthelpsection="An image containing a numerical or alphabetic code that can normally only be read and interpreted by a human. It is used to verify a form to prevent computers/bots from spamming the form."
+				type="boolean"
+				hint="If captcha should be used or not."
+				required="no"
+				default="false"
+				ftseq="10">
+				
+	<cfproperty name="captchaLabel"
+				ftlabel="Captcha label"
+				ftWizardStep="Advanced"
+				ftFieldset="Captcha settings"
+				type="string"
+				hint="Text in front of the text recognition field."
+				required="no"
+				default="Fill in the text from the image bellow"
+				ftjoin="idlFormItem"
+				ftseq="11">
+				
+	<cfproperty name="captchaErrorMessage"
+				ftlabel="Captcha error message"
+				ftWizardStep="Advanced"
+				ftFieldset="Captcha settings"
+				type="string"
+				hint="Error to show if text recognition fails."
+				required="no"
+				default="You did not match the image text."
+				ftjoin="idlFormItem"
+				ftseq="12">
+
 
 	<cffunction name="submit" access="public" output="false" returntype="void">	
 		<cfargument name="objectid" required="yes" type="uuid">
