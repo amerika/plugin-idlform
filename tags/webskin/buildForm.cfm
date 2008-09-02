@@ -194,7 +194,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			</cfif>
 			
 			<cftry>
-				<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="jquery/cfjq"  css_class="#attributes.class#" id="#attributes.id#">
+				<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="/jquery/cfjq"  css_class="#attributes.class#" id="#attributes.id#">
 			<cfcatch type="any">
 				<form action="" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#"<cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
 				<cfset skipValidation = "true">
@@ -305,25 +305,32 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				<cfset thisCssID = "" />
 			</cfif>
 			
+			<!--- Set initial value or if the form has been submitet set the initial value to form item value --->
+			<cfif StructKeyExists(form, "#oFormItem.objectid#")>
+				<cfset initValue = form[oFormItem.objectid] />
+			<cfelse>
+				<cfset initValue = oFormItem.initValue />
+			</cfif>
+			
 			<cfswitch expression="#oFormItem.type#">
 				<cfcase value="textfield">
 					 <cfoutput>
-					<input name="#oFormItem.objectid#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="text" class="<cfif ListLen(validationRule) gt 0>{#validationRule#}</cfif> text" value="#oFormItem.initValue#"#thisCssID# />
+					<input name="#oFormItem.objectid#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="text" class="<cfif ListLen(validationRule) gt 0>{#validationRule#}</cfif> text" value="#initValue#"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="textarea">
 					<cfoutput>
-					<textarea name="#oFormItem.objectid#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> wrap="virtual"#thisCssID#>#oFormItem.initValue#</textarea>
+					<textarea name="#oFormItem.objectid#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> wrap="virtual"#thisCssID#>#initValue#</textarea>
 					</cfoutput>
 				</cfcase>
 				<cfcase value="checkbox">
 					<cfoutput>
-					<input name="#oFormItem.name#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					<input name="#oFormItem.name#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="radiobutton">
 					<cfoutput>
-					<input name="#oFormItem.name#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					<input name="#oFormItem.name#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="list">
