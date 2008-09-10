@@ -1,3 +1,4 @@
+<cfsetting enablecfoutputonly="yes" />
 <!--- 
 
 This template will attemt to use the cfjq_forms custom tag for form client side validation services.
@@ -5,8 +6,6 @@ Should the custom tag not be installed on the server the template will run like 
 
 The cfjq_forms custom tag can also be used to easily add ajax behaviour to form submition at a later time.
 --->
-
-<cfsetting enablecfoutputonly="yes" />
 
 <cfparam name="attributes.objectID" default="" />	<!--- The objectID of the form --->
 <cfparam name="attributes.formInfo" default="" /> 	<!--- The form info text --->
@@ -394,7 +393,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			
 			<cfoutput>
 				<label for="submitidlform" class="submit">&nbsp;</label>
-				<input type="submit" class="submit" name="submitidlform" value="#attributes.submittext#" />
+				<input type="submit" class="submit" name="submitidlform" id="submitidlform" value="#attributes.submittext#" />
 			</form>
 			<!--- 	
 					We use a </form> tag instead of closing the <cf_cfJq_forms> tag due to error due to the FarCry 
