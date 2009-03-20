@@ -34,10 +34,10 @@
 					#createODBCDate(Now())#,
 					#createODBCDate(Now())#,
 					'#arguments.formLogID#',
-					<cfif (oFormItem.type is "radiobutton") or (oFormItem.type is "checkbox")>
+					<cfif (oFormItem.type is "radiobutton")>
 						'#oFormItem.title#',
-						<cfif StructKeyExists(formData,oFormItem.name)>
-							'#formData[oFormItem.name]#',
+						<cfif StructKeyExists(formData,oFormItem.name) and (formData[oFormItem.name] eq oFormItem.objectID)>
+							'X',
 						<cfelse>
 							'',
 						</cfif>

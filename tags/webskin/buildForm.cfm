@@ -324,12 +324,14 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				</cfcase>
 				<cfcase value="checkbox">
 					<cfoutput>
-					<input name="#oFormItem.name#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> />
+					<!--- <input name="#oFormItem.name#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
+					<input name="#oFormItem.objectid#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="X"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="radiobutton">
 					<cfoutput>
-					<input name="#oFormItem.name#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> />
+					<!--- <input name="#oFormItem.name#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
+					<input <cfif Trim(oFormItem.name) is "">name="#oFormItem.objectID#"<cfelse>name="#oFormItem.name#"</cfif> <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.objectID#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="list">
