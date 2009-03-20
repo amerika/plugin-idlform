@@ -5,19 +5,19 @@
 		
 		<ft:processForm action="view" >
 		   <!--- redirect to invoker --->
-		  <cfset viewURL = "/farcry/admin/customadmin.cfm?plugin=idlform&module=idlformLogView.cfm&objectid=#form.selectedobjectid#">
+		  <cfset viewURL = "/webtop/admin/customadmin.cfm?plugin=idlform&module=idlformLogView.cfm&objectid=#form.selectedobjectid#">
 		  <cflocation url="#viewURL#" addtoken="false" />
 		</ft:processForm>
 		
 		<ft:processForm action="edit" >
 		   <!--- redirect to invoker --->
-		  <cfset viewURL = "/farcry/admin/customadmin.cfm?plugin=idlform&module=idlformLogView.cfm&objectid=#form.selectedobjectid#">
+		  <cfset viewURL = "/webtop/admin/customadmin.cfm?plugin=idlform&module=idlformLogView.cfm&objectid=#form.selectedobjectid#">
 		  <cflocation url="#viewURL#" addtoken="false" />
 		</ft:processForm>
 		
 		<ft:processForm action="overview" >
 		   <!--- redirect to invoker --->
-		  <cfset viewURL = "/farcry/admin/customadmin.cfm?plugin=idlform&module=idlformLogView.cfm&objectid=#form.selectedobjectid#">
+		  <cfset viewURL = "/webtop/admin/customadmin.cfm?plugin=idlform&module=idlformLogView.cfm&objectid=#form.selectedobjectid#">
 		  <cflocation url="#viewURL#" addtoken="false" />
 		</ft:processForm>
 
