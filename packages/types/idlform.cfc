@@ -1,4 +1,4 @@
-<cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="false" buseintree="true">
+<cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="false" buseintree="true" bFriendly="true">
 	
 	<!--- // Standard type properties                                 
 	----------------------------------------------------------------->
