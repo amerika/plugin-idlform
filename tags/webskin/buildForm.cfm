@@ -189,7 +189,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 		
 		<cfoutput>
 			<cfif trim(attributes.formInfo) NEQ "">
-				<p>#attributes.formInfo#</p>
+				<div class="idlFormInfo">#attributes.formInfo#</div>
 			</cfif>
 			
 			<cftry>
@@ -373,7 +373,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			
 			<cfif oFormItem.type neq "hidden">
 				<cfoutput></fieldset></cfoutput>
-				<cfif oFormItem.linebreak is 1><cfoutput><br /></cfoutput></cfif>
+				<cfif oFormItem.linebreak is 1><cfoutput><div class="clear"></div></cfoutput></cfif>
 			</cfif>
 				
 			</cfloop>

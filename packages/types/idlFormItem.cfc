@@ -57,7 +57,7 @@
 		ftfieldset="Layout (advanced)"
 		type="string"
 		fttype="list"
-		ftlist="w33percent:33% width,w50percent:50% width,w66percent:66% width,:Whole width"
+		ftlist="w33percent:33% width,w50percent:50% width,w66percent:66% width,w100percent:Whole width"
 		hint="Width class names for html class attribute"
 		required="false"
 		default=""
