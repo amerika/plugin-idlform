@@ -11,7 +11,7 @@
 	columnList="title,receiver,datetimelastUpdated"
 	sortableColumns="title,receiver,datetimelastUpdated"
 	lFilterFields="title,receiver"
-	plugin="idlForm"
+	plugin="idlform"
 	module="/idlForm.cfm" />
 
 <!--- setup footer --->
