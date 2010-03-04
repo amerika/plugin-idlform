@@ -64,7 +64,7 @@
 				default="display"
 				fttype="webskin"
 				ftprefix="displayPage"
-				ftseq="6">
+				ftseq="6" />
 				
 	<cfproperty name="aFormItems"
 				ftlabel="Selected Form Items"
@@ -74,7 +74,8 @@
 				hint="Holds objects to be displayed at this particular node."
 				required="no" default=""
 				ftjoin="idlFormItem"
-				ftseq="7">
+				ftseq="7"
+				ftAllowAttach="true" ftAllowAdd="true" ftAllowEdit="true" ftRemoveType="detach" />
 				
 
 	<!--- // Advanced type properties (captcha)                       
