@@ -3,10 +3,14 @@
 <webtop>
 	<section id="idlforms" permission="MainNavContentTab" label="Forms" sequence="3010">
 		<subsection id="idlformssection" permission="MainNavContentTab" sidebar="custom/sidebar.cfm" content="inc/content_overview.html" label="Forms">
-			<menu label="Form administration">
-				<menuitem label="Forms" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlform.cfm" relatedtype="idlForm" />
-				<menuitem label="Form log" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformLog.cfm" />
-				<menuitem label="Reports" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformReports.cfm" />
+			<menu sequence="1" label="Form Administration">
+				<menuitem sequence="1" label="Form List" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlform.cfm" relatedtype="idlForm" />
+			</menu>
+			<menu sequence="10" label="Form Logs">
+				<menuitem sequence="1" label="View Logs" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformLog.cfm" />
+			</menu>
+			<menu sequence="20" label="Form Reports">
+				<menuitem sequence="1" label="Create Report" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformReports.cfm" />
 			</menu>
 		</subsection>
 	</section>
