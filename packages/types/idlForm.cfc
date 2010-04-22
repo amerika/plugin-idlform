@@ -1,4 +1,4 @@
-<cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="false" bFriendly="true">
+<cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="false" bFriendly="true" fualias="forms">
 	
 	<!--- // Standard type properties                                 
 	----------------------------------------------------------------->
@@ -74,7 +74,7 @@
 				hint="Holds objects to be displayed at this particular node."
 				required="no" default=""
 				ftjoin="idlFormItem"
-				ftseq="7"
+				ftseq="20"
 				ftAllowAttach="true" ftAllowAdd="true" ftAllowEdit="true" ftRemoveType="detach" />
 				
 
@@ -91,7 +91,7 @@
 				hint="If captcha should be used or not."
 				required="no"
 				default="false"
-				ftseq="10">
+				ftseq="100">
 				
 	<cfproperty name="captchaLabel"
 				ftlabel="Captcha label"
@@ -102,7 +102,7 @@
 				required="no"
 				default="Fill in the text from the image bellow"
 				ftjoin="idlFormItem"
-				ftseq="11">
+				ftseq="101">
 				
 	<cfproperty name="captchaErrorMessage"
 				ftlabel="Captcha error message"
@@ -113,7 +113,7 @@
 				required="no"
 				default="You did not match the image text."
 				ftjoin="idlFormItem"
-				ftseq="12">
+				ftseq="102">
 
 
 	<cffunction name="submit" access="public" output="false" returntype="void">	
