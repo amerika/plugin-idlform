@@ -1,4 +1,6 @@
 ﻿<cfcomponent displayname="Form builder: Display form" extends="farcry.core.packages.rules.rules">
+<!--- @@Copyright: Copyright (c) 2010 IDLmedia AS. All rights reserved. --->
+<!--- @@License: --->
 
 	<!--- type properties --->
 	<cfproperty name="formID" ftfieldset="Formdetails" type="uuid" fttype="uuid" hint="Form to display" required="yes" default="" ftlabel="Select form" ftjoin="idlform" bsyncstatus="false" ftseq="1" />
