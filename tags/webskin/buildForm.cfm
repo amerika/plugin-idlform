@@ -161,10 +161,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 	<cfif StructKeyExists(form,"submitidlform") and Len(errormessage) is 0>
 		
 		<!--- send the content of the submited form by e-mail --->
-		<cfinvoke component="farcry.plugins.idlForm.packages.types.idlForm" method="submit">
-			<cfinvokeargument name="objectId" value="#attributes.objectId#"/>
-			<cfinvokeargument name="formData" value="#form#"/>
-		</cfinvoke>
+		<cfset submitForm = createobject("component", application.stcoapi.idlform.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
 		
 		<cfsavecontent variable="tagoutput">
 			<!--- confirmation: respons to the user  --->
