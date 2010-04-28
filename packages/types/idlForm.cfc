@@ -165,10 +165,17 @@
 		<cfargument name="stObj" required="yes" type="struct">
 		<cfargument name="uploadfile" required="yes" type="struct">
 		
-		<cfset oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem")>
+		<cfset var oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem") />
+		
+		<cfset var cfMailFrom = "contactform@#cgi.HTTP_HOST#" />
+		
+		<cfif isvalid("email", cfMailFrom)>
+		<cfelse>
+			<cfset cfMailFrom = "noreply@idl.no" />
+		</cfif>
 		
 		<cfif Len(arguments.stObj.receiver)>
-		<cfmail to="#arguments.stObj.receiver#" from="contactform@#cgi.HTTP_HOST#" subject="#arguments.stObj.title#" type="html">
+		<cfmail to="#arguments.stObj.receiver#" from="#cfMailFrom#" subject="#arguments.stObj.title#" type="html">
 			
 			<style type="text/css">
 			<!--
