@@ -137,19 +137,16 @@
 		</cfloop>
 		
 		<!--- invoke method to send an email with the submited data --->
-		<cfinvoke method="sendMail">
-			<cfinvokeargument name="objectId" value="#arguments.objectId#"/>
-			<cfinvokeargument name="formData" value="#arguments.formData#"/>
-			<cfinvokeargument name="stObj" value="#stObj#">
-			<cfinvokeargument name="uploadfile" value="#uploadfile#">
-		</cfinvoke>
+		<cfset sendMail = this.sendMail(objectId=#arguments.objectId#,formData=#arguments.formData#,stObj=#stObj#,uploadfile=#uploadfile#) />
 		
 		<!--- log --->
+		<!--- TODO: Her bør man bruke application.stcoapi.typenavn.packagepath slik at det er mulig å extende denne delen også --->
 		<cfinvoke component="farcry.plugins.idlForm.packages.types.idlFormLog" method="createLog" returnvariable="formLogID">
 			<cfinvokeargument name="stObj" value="#stObj#">
 		</cfinvoke>
 		
 		<!--- log items --->
+		<!--- TODO: Her bør man bruke application.stcoapi.typenavn.packagepath slik at det er mulig å extende denne delen også --->
 		<cfinvoke component="farcry.plugins.idlForm.packages.types.idlFormLogItem" method="createLogItems">
 			<cfinvokeargument name="stObj" value="#stObj#">
 			<cfinvokeargument name="formData" value="#arguments.formData#"/>
