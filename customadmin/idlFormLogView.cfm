@@ -1,7 +1,8 @@
 <cfimport taglib="/farcry/core/tags/admin" prefix="admin" />
 
-<cfset stObj = createObject("component","farcry.plugins.idlForm.packages.types.idlFormLog")>
-<cfset stObj = stObj.getData(objectID=#url.objectID#)>
+<cfset oLog = createObject("component", application.stCoapi.idlFormLog.packagepath) />
+
+<cfset stObj = oLog.getData(objectID=#url.objectID#)>
 
 <cfquery name="getFormLogItem" datasource="#application.dsn#">
 SELECT *

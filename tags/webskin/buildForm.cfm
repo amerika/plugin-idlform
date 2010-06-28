@@ -44,7 +44,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 		
 		<!--- server side validation - In the future this should probably be moved to its own validate object --->
 			
-			<cfset oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem")>
+			<cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 		
 			<!--- Loop through the form items --->
 			<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
@@ -161,7 +161,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 	<cfif StructKeyExists(form,"submitidlform") and Len(errormessage) is 0>
 		
 		<!--- send the content of the submited form by e-mail --->
-		<cfset submitForm = createobject("component", application.stcoapi.idlform.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
+		<cfset submitForm = createobject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
 		
 		<cfsavecontent variable="tagoutput">
 			<!--- confirmation: respons to the user  --->
@@ -178,7 +178,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			</cfoutput>
 		</cfif>
 		
-		<cfset oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem")>
+		<cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 
 		<!--- 	set comma delimeted list with input types which should not have a label - 
 				hidden should ALWAYS be in this list  --->

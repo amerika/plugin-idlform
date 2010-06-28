@@ -8,38 +8,24 @@
 	<!--- create log file --->
 
 	<cffunction name="createLog" access="public" output="false">
+		<cfargument name="stObj" required="yes" type="struct" />
 		
-		<cfargument name="stObj" required="yes" type="struct">
+		<cfset var stProp = structNew() />
 		
-		<cfset logID = createUUID()>
+		<!--- Add data --->
+		<cfset stProp.objectID = createUUID() />
+		<cfset stProp.datetimecreated = createODBCDateTime(Now()) />
+		<cfset stProp.datetimelastupdated = createODBCDateTime(Now()) />
+		<cfset stProp.formID = arguments.stObj.objectid />
+		<cfset stProp.title = arguments.stObj.title />
+		<cfset stProp.description = arguments.stObj.formheader />
+		<cfset stProp.receiver = arguments.stObj.receiver />
+		<cfset stProp.createdby = 'idlForm' />
+		<cfset stProp.lastupdatedby = 'idlForm' />
 		
-		<cfquery name="createLog" datasource="#application.dsn#">
-		INSERT INTO idlFormLog (
-			objectID,
-			datetimecreated,
-			datetimelastupdated,
-			formID,
-			title,
-			description,
-			receiver,
-			createdby,
-			lastupdatedby
-		)
-		VALUES (
-			'#logID#',
-			#createODBCDateTime(Now())#,
-			#createODBCDateTime(Now())#,
-			'#arguments.stObj.objectid#',
-			'#arguments.stObj.title#',
-			'#arguments.stObj.formheader#',
-			'#arguments.stObj.receiver#',
-			'',
-			''
-		)
-		</cfquery>
+		<cfset stSave = setData(stProperties=stProp) />
 		
-		<cfreturn logID>
-		
+		<cfreturn stProp.objectID>
 	</cffunction>
 	
 </cfcomponent>

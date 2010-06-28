@@ -11,8 +11,8 @@
 		<cfargument name="formData" required="yes" type="struct">
 		<cfargument name="uploadfile" required="no" type="struct">
 		<cfargument name="formLogID" required="yes" type="uuid">
-		
-		<cfset oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem")>
+
+		<cfset var oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath)>
 
 		<cfloop from="1" to="#arrayLen(arguments.stObj.aFormItems)#" index="i">
 			

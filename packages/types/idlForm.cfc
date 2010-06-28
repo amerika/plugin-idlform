@@ -121,38 +121,32 @@
 		<cfargument name="formData" required="yes" type="struct">
 		
 		<!--- getData for object --->
-		<cfset var stObj = this.getData(arguments.objectid)>
+		<cfset var stObj = this.getData(arguments.objectid) />
 		
 		<!--- create structure to hold submited files --->
-		<cfset var uploadfile = StructNew()>
+		<cfset var uploadfile = StructNew() />
+		
+		<cfset var oFormItemService = createObject("component",application.stCoapi.idlFormItem.packagepath) />
 		
 		<!--- upload all submited files and add them to the uploadfile structure  --->
 		<cfloop from="1" to="#arrayLen(stObj.aFormItems)#" index="i">
-			<cfset oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem")>
-			<cfset oFormItem = oFormItemService.getData(objectID=stObj.aFormItems[i])>
-		<cfif oFormItem.type is "filefield" and Len(formData[oFormItem.objectid])>
-			<cffile action="upload" filefield="#oFormItem.objectid#" destination="#application.defaultfilepath#" nameconflict="makeunique">
-			<cfset uploadfile[#oFormItem.objectid#] = "#cffile.serverDirectory#\#cffile.serverFile#">
-		</cfif>
+			<cfset oFormItem = oFormItemService.getData(objectID=stObj.aFormItems[i]) />
+			
+			<cfif oFormItem.type is "filefield" and Len(formData[oFormItem.objectid])>
+				<cffile action="upload" filefield="#oFormItem.objectid#" destination="#application.defaultfilepath#" nameconflict="makeunique" />
+				<cfset uploadfile[#oFormItem.objectid#] = "#cffile.serverDirectory#\#cffile.serverFile#" />
+			</cfif>
+
 		</cfloop>
 		
 		<!--- invoke method to send an email with the submited data --->
-		<cfset sendMail = this.sendMail(objectId=#arguments.objectId#,formData=#arguments.formData#,stObj=#stObj#,uploadfile=#uploadfile#) />
+		<cfset sendMail = sendMail(objectID=arguments.objectId,formData=arguments.formData,stObj=stObj,uploadfile=uploadfile) />
 		
 		<!--- log --->
-		<!--- TODO: Her bør man bruke application.stcoapi.typenavn.packagepath slik at det er mulig å extende denne delen også --->
-		<cfinvoke component="farcry.plugins.idlForm.packages.types.idlFormLog" method="createLog" returnvariable="formLogID">
-			<cfinvokeargument name="stObj" value="#stObj#">
-		</cfinvoke>
+		<cfset formLogID = createObject("component", application.stCoapi.idlFormLog.packagePath).createLog(stObj=stObj) />
 		
 		<!--- log items --->
-		<!--- TODO: Her bør man bruke application.stcoapi.typenavn.packagepath slik at det er mulig å extende denne delen også --->
-		<cfinvoke component="farcry.plugins.idlForm.packages.types.idlFormLogItem" method="createLogItems">
-			<cfinvokeargument name="stObj" value="#stObj#">
-			<cfinvokeargument name="formData" value="#arguments.formData#"/>
-			<cfinvokeargument name="uploadfile" value="#uploadfile#">
-			<cfinvokeargument name="formLogID" value="#formLogID#">
-		</cfinvoke>
+		<cfset saveLogItems = createObject("component", application.stCoapi.idlFormLogItem.packagePath).createLogItems(stObj=stObj,formData=arguments.formData,uploadfile=#uploadfile#,formLogID=#formLogID#) />
 		
 	</cffunction>
 	
@@ -162,7 +156,7 @@
 		<cfargument name="stObj" required="yes" type="struct">
 		<cfargument name="uploadfile" required="yes" type="struct">
 		
-		<cfset var oFormItemService = createObject("component","farcry.plugins.idlForm.packages.types.idlFormItem") />
+		<cfset var oFormItemService = createObject("component",application.stCoapi.idlFormItem.packagepath) />
 		
 		<cfset var cfMailFrom = "contactform@#cgi.HTTP_HOST#" />
 		
