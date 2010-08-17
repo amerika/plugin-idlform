@@ -16,63 +16,61 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 <cfparam name="attributes.id" default="" />			<!--- form tags id --->
 
 <!--- For validation: --->
-<cfparam name="attributes.form_class" default="cfjq_form1"/> <!--- !!! validation will only work on 1 form per page right now --->
-<cfparam name="attributes.placeError" default="inline"/>	<!----if "box" validation error message will be placed in a box over the form--->
+<cfparam name="attributes.form_class" default="cfjq_form1" /> <!--- !!! validation will only work on 1 form per page right now --->
+<cfparam name="attributes.placeError" default="inline" />	<!----if "box" validation error message will be placed in a box over the form--->
 <cfparam name="attributes.ajax" default="false" />		<!--- If we want to use Ajax submitions at a later time!!! --->
-<cfparam name="skipValidation" default="false">
+<cfparam name="skipValidation" default="false" />
 
-<cfparam name="errormessage" default="">
+<cfparam name="errormessage" default="" />
 
 <!--- For captcha --->
-<cfparam name="attributes.useCaptcha" default="false">
-<cfparam name="attributes.captchaLabel" default="Fill in the text from the image bellow">
-<cfparam name="attributes.captchaErrorMessage" default="You did not match the image text.">
+<cfparam name="attributes.useCaptcha" default="false" />
+<cfparam name="attributes.captchaLabel" default="Fill in the text from the image bellow" />
+<cfparam name="attributes.captchaErrorMessage" default="You did not match the image text." />
+	
+<cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 
 <cfif thistag.executionMode eq "Start">
 
+	<cfif trim(attributes.class) is "">
+		<cfset attributes.class = "idlform">
+	</cfif>
 
-<cfif trim(attributes.class) is "">
-	<cfset attributes.class = "idlform">
-</cfif>
-
-<!--- include idlform.css stylesheet - if attributes.class is idlform --->
-<cfif attributes.class is "idlform">
-	<cfhtmlhead text='<link rel="stylesheet" type="text/css" href="/css/idlform.css" media="all" />'>
-</cfif>
+	<!--- include idlform.css stylesheet - if attributes.class is idlform --->
+	<cfif attributes.class is "idlform">
+		<cfhtmlhead text='<link rel="stylesheet" type="text/css" href="/css/idlform.css" media="all" />'>
+	</cfif>
 
 	<cfif StructKeyExists(form,"submitidlform")>
-		
 		<!--- server side validation - In the future this should probably be moved to its own validate object --->
-			
-			<cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 		
 			<!--- Loop through the form items --->
 			<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
 				
 				<!--- Get info about this item --->
-				<cfset oFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
+				<cfset stObjFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
 
 				<cfset isValid = true>
 				
 				<!--- if the form is of type textfield or textarea we do the following validation --->
-				<cfif oFormItem.type is "textfield" or oFormItem.type is "textarea">
+				<cfif stObjFormItem.type is "textfield" or stObjFormItem.type is "textarea">
 					
 					<!--- check if it is required --->
-					<cfif (oFormItem.validateRequired is 1) and (len(trim(form[oFormItem.objectID])) is 0)>
+					<cfif (stObjFormItem.validateRequired is 1) and (len(trim(form[stObjFormItem.objectID])) is 0)>
 						<cfset isValid = false>
 					</cfif>
 					
-					<cfif oFormItem.validateType is "digits" or oFormItem.validateType is "number">
+					<cfif stObjFormItem.validateType is "digits" or stObjFormItem.validateType is "number">
 					
-						<cfif IsNumeric(form[oFormItem.objectID])>
+						<cfif IsNumeric(form[stObjFormItem.objectID])>
 						
 							<!--- check if it has a minimum value --->
-							<cfif IsNumeric(oFormItem.validateMinLength) and oFormItem.validateMinValue gt form[oFormItem.objectID]>
+							<cfif IsNumeric(stObjFormItem.validateMinLength) and stObjFormItem.validateMinLength gt form[stObjFormItem.objectID]>
 								<cfset isValid = false>
 							</cfif>
 							
 							<!--- check if it has a maximum value --->
-							<cfif IsNumeric(oFormItem.validateMaxLength) and oFormItem.validateMaxValue lt form[oFormItem.objectID]>
+							<cfif IsNumeric(stObjFormItem.validateMaxLength) and stObjFormItem.validateMaxLength lt form[stObjFormItem.objectID]>
 								<cfset isValid = false>
 							</cfif>
 						
@@ -81,51 +79,51 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 					<cfelse>
 						
 						<!--- check if it has a minimum length --->
-						<cfif IsNumeric(oFormItem.validateMinLength) and oFormItem.validateMinLength gt len(trim(form[oFormItem.objectID]))>
+						<cfif IsNumeric(stObjFormItem.validateMinLength) and stObjFormItem.validateMinLength gt len(trim(form[stObjFormItem.objectID]))>
 							<cfset isValid = false>
 						</cfif>
 						
 						<!--- check if it has a maximum length --->
-						<cfif IsNumeric(oFormItem.validateMaxLength) and oFormItem.validateMaxLength lt len(trim(form[oFormItem.objectID]))>
+						<cfif IsNumeric(stObjFormItem.validateMaxLength) and stObjFormItem.validateMaxLength lt len(trim(form[stObjFormItem.objectID]))>
 							<cfset isValid = false>
 						</cfif>
 						
 					</cfif>
 					
-					<cfswitch expression="oFormItem.validateType">
+					<cfswitch expression="stObjFormItem.validateType">
 						
 						<cfcase value="digits">
-							<cfif not IsValid(integer,form[oFormItem.objectID])>
+							<cfif not IsValid(integer,form[stObjFormItem.objectID])>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="number">
-							<cfif not IsValid(numeric,form[oFormItem.objectID])>
+							<cfif not IsValid(numeric,form[stObjFormItem.objectID])>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="date">
-							<cfif not IsValid(eurodate,form[oFormItem.objectID])>
+							<cfif not IsValid(eurodate,form[stObjFormItem.objectID])>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="creditcard">
-							<cfif not IsValid(creditcard,form[oFormItem.objectID])>
+							<cfif not IsValid(creditcard,form[stObjFormItem.objectID])>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="url">
-							<cfif not IsValid(URL,form[oFormItem.objectID])>
+							<cfif not IsValid(URL,form[stObjFormItem.objectID])>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="email">
-							<cfif not IsValid(email,form[oFormItem.objectID])>
+							<cfif not IsValid(email,form[stObjFormItem.objectID])>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
@@ -135,7 +133,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				</cfif>
 				
 				<!--- if the form is of type checkbox or radiobutton we do the following validation --->
-				<cfif oFormItem.type is "checkbox" or oFormItem.type is "radiobutton">
+				<cfif stObjFormItem.type is "checkbox" or stObjFormItem.type is "radiobutton">
 					
 				<!--- TODO: add validation here --->
 				
@@ -143,7 +141,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				
 				<cfif isValid is false>
 					<!--- add info to the error message --->
-					<cfset errorMessage = Insert("<span class='label'>#oFormItem.label#:</span> <span class='errortext'>#oFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
+					<cfset errorMessage = Insert("<span class='label'>#stObjFormItem.label#:</span> <span class='errortext'>#stObjFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
 				</cfif>
 				
 			</cfloop>
@@ -161,7 +159,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 	<cfif StructKeyExists(form,"submitidlform") and Len(errormessage) is 0>
 		
 		<!--- send the content of the submited form by e-mail --->
-		<cfset submitForm = createobject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
+		<cfset submitForm = createObject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
 		
 		<cfsavecontent variable="tagoutput">
 			<!--- confirmation: respons to the user  --->
@@ -177,8 +175,6 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				</div>
 			</cfoutput>
 		</cfif>
-		
-		<cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 
 		<!--- 	set comma delimeted list with input types which should not have a label - 
 				hidden should ALWAYS be in this list  --->
@@ -203,22 +199,22 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
 			
 			<!--- get formitem data --->
-			<cfset oFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
+			<cfset stObjFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
 			
-			<cfif oFormItem.type neq "hidden">
+			<cfif stObjFormItem.type neq "hidden">
 				
 				<!--- Add classes --->
 				<cfsavecontent variable="fieldsetClasses">
-					<cfif trim(oFormItem.width) NEQ "" OR trim(oFormItem.class) NEQ "">
+					<cfif trim(stObjFormItem.width) NEQ "" OR trim(stObjFormItem.class) NEQ "">
 	
 						<cfoutput> class="</cfoutput> <!--- Start class --->
 							
-							<cfif trim(oFormItem.width) NEQ "">
-								<cfoutput>#trim(oFormItem.width)# </cfoutput>
+							<cfif trim(stObjFormItem.width) NEQ "">
+								<cfoutput>#trim(stObjFormItem.width)# </cfoutput>
 							</cfif>
 							
-							<cfif trim(oFormItem.class) NEQ "">
-								<cfoutput>#trim(oFormItem.class)#</cfoutput>
+							<cfif trim(stObjFormItem.class) NEQ "">
+								<cfoutput>#trim(stObjFormItem.class)#</cfoutput>
 							</cfif>
 							
 						<cfoutput>" </cfoutput> <!--- End class --->
@@ -235,11 +231,11 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			
 			<cfif skipValidation eq false>
 			
-				<cfif oFormItem.validateRequired is true>
+				<cfif stObjFormItem.validateRequired is true>
 					<cfset validationRule = ListAppend(validationRule,"required:true")>
 				</cfif>
 				
-				<cfswitch expression="#oFormItem.validateType#">
+				<cfswitch expression="#stObjFormItem.validateType#">
 					<cfcase value="url">
 						<cfset validationRule = ListAppend(validationRule,"url:true")>
 					</cfcase>
@@ -260,19 +256,19 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 					</cfcase>
 				</cfswitch>
 				
-				<cfif IsNumeric(oFormItem.validateMinLength)>
-					<cfif (oFormItem.validateType is "digits") or (oFormItem.validateType is "number")>
-						<cfset validationRule = ListAppend(validationRule,"minValue:#oFormItem.validateMinLength#")>
+				<cfif IsNumeric(stObjFormItem.validateMinLength)>
+					<cfif (stObjFormItem.validateType is "digits") or (stObjFormItem.validateType is "number")>
+						<cfset validationRule = ListAppend(validationRule,"minValue:#stObjFormItem.validateMinLength#")>
 					<cfelse>
-						<cfset validationRule = ListAppend(validationRule,"minLength:#oFormItem.validateMinLength#")>
+						<cfset validationRule = ListAppend(validationRule,"minLength:#stObjFormItem.validateMinLength#")>
 					</cfif>
 				</cfif>
 				
-				<cfif IsNumeric(oFormItem.validateMaxLength)>
-					<cfif (oFormItem.validateType is "digits") or (oFormItem.validateType is "number")>
-						<cfset validationRule = ListAppend(validationRule,"maxValue:#oFormItem.validateMaxLength#")>
+				<cfif IsNumeric(stObjFormItem.validateMaxLength)>
+					<cfif (stObjFormItem.validateType is "digits") or (stObjFormItem.validateType is "number")>
+						<cfset validationRule = ListAppend(validationRule,"maxValue:#stObjFormItem.validateMaxLength#")>
 					<cfelse>	
-						<cfset validationRule = ListAppend(validationRule,"maxLength:#oFormItem.validateMaxLength#")>
+						<cfset validationRule = ListAppend(validationRule,"maxLength:#stObjFormItem.validateMaxLength#")>
 					</cfif>
 				</cfif>
 				
@@ -280,14 +276,14 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 			
 								
 			<!--- display (or not) label --->
-			<cfif not ListFind(noLabel,oFormItem.type)>
+			<cfif not ListFind(noLabel,stObjFormItem.type)>
 
-				<cfoutput><label for="#oFormItem.objectid#"></cfoutput>
-				<cfif Len(trim(oFormItem.title))>
-					<cfif oFormItem.validateRequired is true>
-						<cfoutput><span class="required">#oFormItem.title# *</span>:</cfoutput>
+				<cfoutput><label for="#stObjFormItem.objectid#"></cfoutput>
+				<cfif Len(trim(stObjFormItem.title))>
+					<cfif stObjFormItem.validateRequired is true>
+						<cfoutput><span class="required">#stObjFormItem.title# *</span>:</cfoutput>
 					<cfelse>
-						<cfoutput>#oFormItem.title#:</cfoutput>
+						<cfoutput>#stObjFormItem.title#:</cfoutput>
 					</cfif>
 				</cfif>
 				
@@ -295,48 +291,48 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 						
 			</cfif>
 			
-			<cfif oFormItem.type NEQ "hidden" AND oFormItem.cssID NEQ "">
-				<cfset thisCssID = ' id="#oFormItem.cssID#"' />
+			<cfif stObjFormItem.type NEQ "hidden" AND stObjFormItem.cssID NEQ "">
+				<cfset thisCssID = ' id="#stObjFormItem.cssID#"' />
 			<cfelse>
 				<cfset thisCssID = "" />
 			</cfif>
 			
 			<!--- Set initial value or if the form has been submitet set the initial value to form item value --->
-			<cfif StructKeyExists(form, "#oFormItem.objectid#")>
-				<cfset initValue = form[oFormItem.objectid] />
+			<cfif StructKeyExists(form, "#stObjFormItem.objectid#")>
+				<cfset initValue = form[stObjFormItem.objectid] />
 			<cfelse>
-				<cfset initValue = oFormItem.initValue />
+				<cfset initValue = stObjFormItem.initValue />
 			</cfif>
 			
-			<cfswitch expression="#oFormItem.type#">
+			<cfswitch expression="#stObjFormItem.type#">
 				<cfcase value="textfield">
 					 <cfoutput>
-					<input name="#oFormItem.objectid#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="text" class="<cfif ListLen(validationRule) gt 0>{#validationRule#}</cfif> text" value="#initValue#"#thisCssID# />
+					<input name="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="<cfif ListLen(validationRule) gt 0>{#validationRule#}</cfif> text" value="#initValue#"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="textarea">
 					<cfoutput>
-					<textarea name="#oFormItem.objectid#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> wrap="virtual"#thisCssID#>#initValue#</textarea>
+					<textarea name="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual"#thisCssID#>#initValue#</textarea>
 					</cfoutput>
 				</cfcase>
 				<cfcase value="checkbox">
 					<cfoutput>
-					<!--- <input name="#oFormItem.name#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#oFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
-					<input name="#oFormItem.objectid#" type="checkbox" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> class="checkbox" value="X"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					<!--- <input name="#stObjFormItem.name#" type="checkbox" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
+					<input name="#stObjFormItem.objectid#" type="checkbox" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> class="checkbox" value="X"#thisCssID# <cfif stObjFormItem.initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="radiobutton">
 					<cfoutput>
-					<!--- <input name="#oFormItem.name#" <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
-					<input <cfif Trim(oFormItem.name) is "">name="#oFormItem.objectID#"<cfelse>name="#oFormItem.name#"</cfif> <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#oFormItem.objectID#"#thisCssID# <cfif oFormItem.initValue is 1>checked</cfif> />
+					<!--- <input name="#stObjFormItem.name#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
+					<input <cfif Trim(stObjFormItem.name) is "">name="#stObjFormItem.objectID#"<cfelse>name="#stObjFormItem.name#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#"#thisCssID# <cfif stObjFormItem.initValue is 1>checked</cfif> />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="list">
 					<cfoutput>
-					<select <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> name="#oFormItem.objectid#"#thisCssID#>
+					<select <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID#>
 					</cfoutput>
 					
-					<cfloop list="#oFormItem.initValue#" index="i">
+					<cfloop list="#stObjFormItem.initValue#" index="i">
 						<cfoutput>
 						<option value="#i#">#i#</option>
 						</cfoutput>
@@ -348,29 +344,29 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				</cfcase>
 				<cfcase value="filefield">
 					<cfoutput>
-					<input <cfif trim(oFormItem.validateErrorMessage) gt 0>title="#oFormItem.validateErrorMessage#"</cfif> name="#oFormItem.objectid#" type="file" class="file"#thisCssID# />
+					<input <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#" type="file" class="file"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="statictext">
 					<cfoutput>
-					<span class="statictext">#oFormItem.initValue#</span>
+					<span class="statictext">#stObjFormItem.initValue#</span>
 					</cfoutput>
 				</cfcase>
 				<cfcase value="hidden">
 					<cfoutput>
-						<cfif Left(oFormItem.initValue, "1") is "##" and Right(oFormItem.initValue, "1") is "##">
-							<cfset thisvalue = #Evaluate(oFormItem.initValue)#>
+						<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
+							<cfset thisvalue = #Evaluate(stObjFormItem.initValue)#>
 						<cfelse>
-							<cfset thisvalue = oFormItem.initValue>
+							<cfset thisvalue = stObjFormItem.initValue>
 						</cfif>
-						<input type="hidden" name="#oFormItem.objectid#" value="#thisvalue#" />
+						<input type="hidden" name="#stObjFormItem.objectid#" value="#thisvalue#" />
 					</cfoutput>
 				</cfcase>
 			</cfswitch>
 			
-			<cfif oFormItem.type neq "hidden">
+			<cfif stObjFormItem.type neq "hidden">
 				<cfoutput></fieldset></cfoutput>
-				<cfif oFormItem.linebreak is 1><cfoutput><div class="clear"></div></cfoutput></cfif>
+				<cfif stObjFormItem.linebreak is 1><cfoutput><div class="clear"></div></cfoutput></cfif>
 			</cfif>
 				
 			</cfloop>
