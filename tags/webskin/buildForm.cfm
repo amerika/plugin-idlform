@@ -74,6 +74,8 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 								<cfset isValid = false>
 							</cfif>
 						
+						<cfelse>
+							<cfset isValid = false>
 						</cfif>
 					
 					<cfelse>
@@ -84,7 +86,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 						</cfif>
 						
 						<!--- check if it has a maximum length --->
-						<cfif IsNumeric(stObjFormItem.validateMaxLength) and stObjFormItem.validateMaxLength lt len(trim(form[stObjFormItem.objectID]))>
+						<cfif IsNumeric(stObjFormItem.validateMaxLength) and stObjFormItem.validateMaxLength lt len(trim(form[stObjFormItem.objectID])) AND stObjFormItem.validateMaxLength NEQ 0>
 							<cfset isValid = false>
 						</cfif>
 						
