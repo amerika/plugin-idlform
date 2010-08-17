@@ -1,153 +1,72 @@
-﻿<cfcomponent extends="farcry.core.packages.types.types" displayname="Form builder item" output="false">
+﻿<cfcomponent extends="farcry.core.packages.types.types" displayname="Form Builder Item" output="false">
 
 	<!--- type properties --->
-	<cfproperty 
-		name="title"
-		ftfieldset="General"
-		type="string"
-		hint="Form Item title"
-		required="yes"
-		default=""
-		ftlabel="Label"
-		ftseq="1">
+	<cfproperty ftSeq="1" ftFieldset="General"
+				name="title" type="string" required="true" default=""
+				ftLabel="Label"
+				hint="Form Item title" />
 		
-	<cfproperty
-		name="type"
-		ftfieldset="General"
-		type="string"
-		hint="The type of Form Item"
-		default="textfield"
-		fttype="list"
-		ftlist="textfield:Text Field,textarea:Text Area,checkbox:Check Box,radiobutton:Radio Button,list:List,filefield:Attachment,statictext:Static Text,hidden:Hidden Field"
-		ftlabel="Input type"
-		ftseq="2">
+	<cfproperty ftSeq="2" ftFieldset="General"
+				name="type" type="string" default="textfield"
+				ftLabel="Input type" ftType="list"
+				ftlist="textfield:Text Field,textarea:Text Area,checkbox:Check Box,radiobutton:Radio Button,list:List,filefield:Attachment,statictext:Static Text,hidden:Hidden Field"
+				hint="The type of Form Item" />
 		
-	<cfproperty
-		name="initValue"
-		ftfieldset="General"
-		type="string"
-		hint="Initial value of the form element"
-		required="no"
-		default=""
-		ftlabel="Initial value"
-		ftseq="3">
+	<cfproperty ftSeq="3" ftFieldset="General"
+				name="initValue" type="string" required="false" default=""
+				ftLabel="Initial value"
+				hint="Initial value of the form element" />
 		
-	<cfproperty
-		name="name"
-		ftfieldset="General"
-		type="string"
-		hint="name for grouping radiobuttons and check boxes"
-		required="true"
-		default=""
-		ftlabel="Group name"
-		ftseq="4">
+	<cfproperty ftSeq="4" ftFieldset="General"
+				name="name" type="string" required="false" default=""
+				ftLabel="Group name"
+				hint="name for grouping radiobuttons and check boxes" />
 		
-	<cfproperty
-		name="linebreak"
-		ftfieldset="Layout (advanced)"
-		type="boolean"
-		hint="If there should be a linebreak after the item or not"
-		required="yes"
-		default="1"
-		ftlabel="Linebreak after?"
-		ftseq="5">
+	<cfproperty ftSeq="5" ftFieldset="Layout (advanced)"
+				name="linebreak" type="boolean" required="true" default="1"
+				ftLabel="Linebreak after?" ftDefault="1"
+				hint="If there should be a linebreak after the item or not" />
 		
-	<cfproperty
-		name="width"
-		ftfieldset="Layout (advanced)"
-		type="string"
-		fttype="list"
-		ftlist="w33percent:33% width,w50percent:50% width,w66percent:66% width,w100percent:Whole width"
-		hint="Width class names for html class attribute"
-		required="false"
-		default=""
-		ftlabel="Class name"
-		ftseq="6">
+	<cfproperty ftSeq="6" ftFieldset="Layout (advanced)"
+				name="width" type="string" required="false" default=""
+				ftLabel="Class name" ftType="list"
+				ftlist="w33percent:33% width,w50percent:50% width,w66percent:66% width,w100percent:Whole width"
+				hint="Width class names for html class attribute" />
 		
-	<cfproperty
-		name="class"
-		ftfieldset="Layout (advanced)"
-		type="string"
-		hint="class name for html class attribute"
-		required="false"
-		default=""
-		ftlabel="Class name"
-		ftseq="7">
+	<cfproperty ftSeq="7" ftFieldset="Layout (advanced)"
+				name="class" type="string" required="false" default=""
+				ftLabel="Class name"
+				hint="class name for html class attribute" />
 		
-	<cfproperty
-		name="cssID"
-		ftfieldset="Layout (advanced)"
-		type="string"
-		hint="name for html id attribute"
-		required="false"
-		default=""
-		ftlabel="ID name"
-		ftseq="8">
+	<cfproperty ftSeq="8" ftFieldset="Layout (advanced)"
+				name="cssID" type="string" required="false" default=""
+				ftLabel="ID name"
+				hint="name for html id attribute" />
 		
-	<cfproperty
-		name="validateRequired"
-		ftfieldset="Validation"
-		type="boolean"
-		hint="if the form field is required"
-		required="false"
-		default="false"
-		ftlabel="Required"
-		ftseq="9">
+	<cfproperty ftSeq="9" ftFieldset="Validation"
+				name="validateRequired" type="boolean" required="false" default="false"
+				ftLabel="Required"
+				hint="if the form field is required" />
 		
-	<cfproperty
-		name="validateType"
-		ftfieldset="Validation"
-		type="string"
-		hint="what type chould it be"
-		required="false"
-		default="none"
-		ftlabel="Type"
-		fttype="list"
-		ftlist="none:None,email:Email,url:Web address,date:Date,creditcard:Credit Card,digits:Digits,number:Number"
-		ftseq="10">
+	<cfproperty ftSeq="10" ftFieldset="Validation"
+				name="validateType" type="string" required="false" default="none"
+				ftLabel="Type" ftType="list"
+				ftlist="none:None,email:Email,url:Web address,date:Date,creditcard:Credit Card,digits:Digits,number:Number"
+				hint="what type chould it be" />
 		
-	<cfproperty
-		name="validateMinLength"
-		ftfieldset="Validation"
-		type="string"
-		fttype="integer"
-		hint="Minimum length of field"
-		required="false"
-		default=""
-		ftlabel="Minimum length"
-		ftseq="11">
+	<cfproperty ftSeq="11" ftFieldset="Validation"
+				name="validateMinLength" type="string" ftType="integer" required="false" default=""
+				ftLabel="Minimum length" ftDefault=""
+				hint="Minimum length of field" />
 		
-	<cfproperty
-		name="validateMaxLength"
-		ftfieldset="Validation"
-		type="string"
-		fttype="integer"
-		hint="Maximum length of field"
-		required="false"
-		default=""
-		ftlabel="Maximum length"
-		ftseq="12">
+	<cfproperty ftSeq="12" ftFieldset="Validation"
+				name="validateMaxLength" type="string" required="false" default=""
+				ftLabel="Maximum length" ftType="integer" ftDefault=""
+				hint="Maximum length of field" />
 		
-	<cfproperty
-		name="validateErrorMessage"
-		ftfieldset="Validation"
-		type="string"
-		hint="Message to show if validation fails"
-		required="false"
-		default=""
-		ftlabel="Error Message"
-		ftseq="13">
-	
-	<!--- <cffunction name="afterSave" access="public" output="true">
-		<cfoutput>
-			<script type="text/javascript">
-			function refreshParentAndClose() {
-				window.opener.location.reload();
-				window.close()
-			}
-			</script>
-			<input type="button" value="lukk vindu" onclick="refreshParentAndClose()">
-		</cfoutput>
-		<cfabort>
-	</cffunction> --->
+	<cfproperty ftSeq="13" ftFieldset="Validation"
+				name="validateErrorMessage" type="string" required="false" default=""
+				ftLabel="Error Message"
+				hint="Message to show if validation fails" />
+
 </cfcomponent>
