@@ -3,9 +3,10 @@
 <cfparam name="form.form" default="">
 <cfparam name="form.list2" default="">
 
+<!--- Get all forms --->
 <cfquery name="forms" datasource="#application.dsn#">
-SELECT *
-FROM idlForm
+	SELECT *
+	FROM idlForm
 </cfquery>
 
 <cfoutput>
@@ -83,36 +84,32 @@ FROM idlForm
 			}
 		}
 	</script>
-
 </head>
 
 <body>
 	<h2>Step 1 - Choose form to generate report from</h2>
 	<form method="post">
-	
 		<select name="form">
 			<option value=""> - - - Chose form to generate report from - - - </option>
 			<cfloop query="forms">
 				<option value="#forms.objectid#" <cfif form.form eq forms.objectid>selected="true"</cfif>>#forms.title#</option>
 			</cfloop>
 		</select>
-		
 		<input type="submit" value="Step 2 -->">
-	
 	</form>
 </cfoutput>
 
 <cfif Len(form.form)>
 
 	<cfquery name="formlogtitles" datasource="#application.dsn#">
-	SELECT title
-	FROM idlFormLogItem
-	WHERE formlogid IN (
-		SELECT objectid
-		FROM idlFormLog
-		WHERE formid = '#form.form#'
-		)
-	GROUP BY title
+		SELECT title
+		FROM idlFormLogItem
+		WHERE formlogid IN (
+			SELECT objectid
+			FROM idlFormLog
+			WHERE formid = '#form.form#'
+			)
+		GROUP BY title
 	</cfquery>
 
 	<cfoutput>
@@ -161,15 +158,17 @@ FROM idlForm
 <cfif ListLen(form.list2)>
 
 	<cfquery name="formlogs" datasource="#application.dsn#">
-	SELECT *
-	FROM idlFormLog
-	WHERE formid = '#form.form#'
+		SELECT *
+		FROM idlFormLog
+		WHERE formid = '#form.form#'
+		ORDER BY dateTimeCreated DESC
 	</cfquery>
 	
 	<cfoutput>
 		<h2>Report:</h2>
 		<table class="table1">
 			<tr>
+				<th>Date</th>
 				<cfloop list="#form.list2#" index="i">
 					<th>#i#</th>
 				</cfloop>
@@ -178,12 +177,13 @@ FROM idlForm
 			<cfloop query="formlogs">
 				
 				<cfquery name="formlogitems" datasource="#application.dsn#">
-				SELECT title, value
-				FROM idlFormLogItem
-				WHERE formlogid = '#formlogs.objectid#'
+					SELECT title, value
+					FROM idlFormLogItem
+					WHERE formlogid = '#formlogs.objectid#'
 				</cfquery>
 				
 				<tr>
+					<td>#lsDateFormat(formlogs.dateTimeCreated, "dd.mm.yyyy")# #timeformat(formlogs.dateTimeCreated, "HH:MM")#</td>
 					<cfloop list="#form.list2#" index="i">
 						<td>
 							<cfset thistitle = i>
