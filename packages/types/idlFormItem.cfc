@@ -57,12 +57,14 @@
 	<cfproperty ftSeq="11" ftFieldset="Validation"
 				name="validateMinLength" type="string" ftType="integer" required="false" default=""
 				ftLabel="Minimum length" ftDefault=""
-				hint="Minimum length of field" />
+				hint="Minimum length of field"
+				ftHint="Set to 0 if you don't want to validate minimum lenght." />
 		
 	<cfproperty ftSeq="12" ftFieldset="Validation"
 				name="validateMaxLength" type="string" required="false" default=""
 				ftLabel="Maximum length" ftType="integer" ftDefault=""
-				hint="Maximum length of field" />
+				hint="Maximum length of field"
+				ftHint="Set to 0 if you don't want to validate maximum lenght." />
 		
 	<cfproperty ftSeq="13" ftFieldset="Validation"
 				name="validateErrorMessage" type="string" required="false" default=""
