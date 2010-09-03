@@ -61,7 +61,6 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 					</cfif>
 					
 					<cfif stObjFormItem.validateType is "digits" or stObjFormItem.validateType is "number">
-					
 						<cfif IsNumeric(form[stObjFormItem.objectID])>
 						
 							<!--- check if it has a minimum value --->
@@ -77,9 +76,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 						<cfelse>
 							<cfset isValid = false>
 						</cfif>
-					
 					<cfelse>
-						
 						<!--- check if it has a minimum length --->
 						<cfif IsNumeric(stObjFormItem.validateMinLength) and stObjFormItem.validateMinLength gt len(trim(form[stObjFormItem.objectID]))>
 							<cfset isValid = false>
@@ -91,47 +88,43 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 						</cfif>
 						
 					</cfif>
-					
-					<cfswitch expression="stObjFormItem.validateType">
-						
+					<cfswitch expression="#stObjFormItem.validateType#">
 						<cfcase value="digits">
-							<cfif not IsValid(integer,form[stObjFormItem.objectID])>
+							<cfif (not IsValid("integer",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("integer",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="number">
-							<cfif not IsValid(numeric,form[stObjFormItem.objectID])>
+							<cfif (not IsValid("numeric",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("numeric",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="date">
-							<cfif not IsValid(eurodate,form[stObjFormItem.objectID])>
+							<cfif (not IsValid("eurodate",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("eurodate",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="creditcard">
-							<cfif not IsValid(creditcard,form[stObjFormItem.objectID])>
+							<cfif (not IsValid("creditcard",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("creditcard",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="url">
-							<cfif not IsValid(URL,form[stObjFormItem.objectID])>
+							<cfif (not IsValid("URL",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("URL",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
 						
 						<cfcase value="email">
-							<cfif not IsValid(email,form[stObjFormItem.objectID])>
+							<cfif (not IsValid("email",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("email",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
-						
 					</cfswitch>
-
 				</cfif>
 				
 				<!--- if the form is of type checkbox or radiobutton we do the following validation --->
@@ -141,7 +134,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				
 				</cfif>
 				
-				<cfif isValid is false>
+				<cfif NOT isValid>
 					<!--- add info to the error message --->
 					<cfset errorMessage = Insert("<span class='label'>#stObjFormItem.label#:</span> <span class='errortext'>#stObjFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
 				</cfif>
@@ -161,7 +154,8 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 	<cfif StructKeyExists(form,"submitidlform") and Len(errormessage) is 0>
 		
 		<!--- send the content of the submited form by e-mail --->
-		<cfset submitForm = createObject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
+		<!--- TODO: Sjekk hva stSubmitForm returnerer, denne skal ha status på lagring, osv. Dette må testes, --->
+		<cfset stSubmitForm = createObject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
 		
 		<cfsavecontent variable="tagoutput">
 			<!--- confirmation: respons to the user  --->
