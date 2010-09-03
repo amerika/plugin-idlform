@@ -51,7 +51,7 @@
 	<cfproperty ftSeq="10" ftFieldset="Validation"
 				name="validateType" type="string" required="false" default="none"
 				ftLabel="Type" ftType="list"
-				ftlist="none:None,email:Email,url:Web address,date:Date,creditcard:Credit Card,digits:Digits,number:Number"
+				ftlist="none:None,email:E-mail,url:Web address,date:Date,creditcard:Credit Card,digits:Digits,number:Number"
 				hint="what type chould it be" />
 		
 	<cfproperty ftSeq="11" ftFieldset="Validation"
