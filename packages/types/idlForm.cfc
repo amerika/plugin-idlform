@@ -65,7 +65,7 @@
 	<!--- // Deactivated properties (used for backwards compatibility)
 	----------------------------------------------------------------->
 	<cfproperty ftseq="" ftWizardStep="" ftFieldset=""
-				name="displayMethod" type="string" required="yes" default="display"
+				name="displayMethod" type="string" required="yes" default="displayPageStandard"
 				ftlabel="Form Template" fttype="webskin" ftprefix="displayPage"
 				hint="Display method to render this HTML object with." />
 
