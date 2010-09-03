@@ -60,34 +60,34 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 						<cfset isValid = false>
 					</cfif>
 					
+					<!--- validate digits --->
 					<cfif stObjFormItem.validateType is "digits" or stObjFormItem.validateType is "number">
-						<cfif IsNumeric(form[stObjFormItem.objectID])>
-						
+						<cfif (stObjFormItem.validateRequired is 0 AND len(trim(form[stObjFormItem.objectID])) GT 0)
+						   OR (stObjFormItem.validateRequired is 1)>
 							<!--- check if it has a minimum value --->
-							<cfif IsNumeric(stObjFormItem.validateMinLength) and stObjFormItem.validateMinLength gt form[stObjFormItem.objectID]>
+							<cfif (stObjFormItem.validateMinLength gt form[stObjFormItem.objectID] AND stObjFormItem.validateMinLength NEQ 0) AND IsNumeric(form[stObjFormItem.objectID])>
 								<cfset isValid = false>
 							</cfif>
-							
 							<!--- check if it has a maximum value --->
-							<cfif IsNumeric(stObjFormItem.validateMaxLength) and stObjFormItem.validateMaxLength lt form[stObjFormItem.objectID]>
+							<cfif (stObjFormItem.validateMaxLength lt form[stObjFormItem.objectID] AND stObjFormItem.validateMaxLength NEQ 0) AND IsNumeric(form[stObjFormItem.objectID])>
 								<cfset isValid = false>
 							</cfif>
-						
-						<cfelse>
-							<cfset isValid = false>
 						</cfif>
 					<cfelse>
-						<!--- check if it has a minimum length --->
-						<cfif IsNumeric(stObjFormItem.validateMinLength) and stObjFormItem.validateMinLength gt len(trim(form[stObjFormItem.objectID]))>
-							<cfset isValid = false>
+					<!--- validate string lengths --->
+						<cfif (stObjFormItem.validateRequired is 0 AND len(trim(form[stObjFormItem.objectID])) GT 0)
+						   OR (stObjFormItem.validateRequired is 1)>
+							<!--- check if it has a minimum length --->
+							<cfif IsNumeric(stObjFormItem.validateMinLength) and stObjFormItem.validateMinLength gt len(trim(form[stObjFormItem.objectID]))>
+								<cfset isValid = false>
+							</cfif>
+							<!--- check if it has a maximum length --->
+							<cfif IsNumeric(stObjFormItem.validateMaxLength) and stObjFormItem.validateMaxLength lt len(trim(form[stObjFormItem.objectID])) AND stObjFormItem.validateMaxLength NEQ 0>
+								<cfset isValid = false>
+							</cfif>
 						</cfif>
-						
-						<!--- check if it has a maximum length --->
-						<cfif IsNumeric(stObjFormItem.validateMaxLength) and stObjFormItem.validateMaxLength lt len(trim(form[stObjFormItem.objectID])) AND stObjFormItem.validateMaxLength NEQ 0>
-							<cfset isValid = false>
-						</cfif>
-						
 					</cfif>
+					
 					<cfswitch expression="#stObjFormItem.validateType#">
 						<cfcase value="digits">
 							<cfif (not IsValid("integer",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("integer",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
@@ -129,9 +129,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				
 				<!--- if the form is of type checkbox or radiobutton we do the following validation --->
 				<cfif stObjFormItem.type is "checkbox" or stObjFormItem.type is "radiobutton">
-					
-				<!--- TODO: add validation here --->
-				
+					<!--- TODO: add validation here --->
 				</cfif>
 				
 				<cfif NOT isValid>
