@@ -9,7 +9,7 @@
 <!--- @@author: Jørgen M. Skogås on 2010-10-27 --->
 
 <!--- import taglib --->
-<cfimport taglib="/farcry/plugins/idlform/tags/webskin/" prefix="skin" />
+<cfimport taglib="/farcry/core/tags/webskin/" prefix="skin" />
 
 <!--- Output
 ///////////////////////////////////////////////////////////////////////////////////////////////// --->

@@ -6,7 +6,7 @@
 
 	<cfoutput>
 		<div class="idlform">
-			<h2>#stForm.title#</h2>
+			<h2>#stObj.title#</h2>
 	</cfoutput>
 	<!--- build form --->
 	<skin:buildForm objectID="#stObj.objectID#" formInfo="#stObj.formheader#" sendtText="#stObj.sendt#" submitText="#stObj.submitText#" aFormItems="#stObj.aFormItems#"></skin:buildForm>
