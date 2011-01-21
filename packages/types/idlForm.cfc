@@ -195,7 +195,7 @@
 						<table cellspacing="1" bgcolor="##CCCCCC">
 							<tr>
 								<th scope="col">Form item:</th>
-								<th scope="col">Sumbited information:</th>
+								<th scope="col">Submitted information:</th>
 							</tr>
 							<cfloop from="1" to="#arrayLen(arguments.stObj.aFormItems)#" index="i">
 								<cfset oFormItem = application.fapi.getContentObject(objectID=arguments.stObj.aFormItems[i]) />
