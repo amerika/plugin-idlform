@@ -317,8 +317,18 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 				</cfcase>
 				<cfcase value="radiobutton">
 					<cfoutput>
+						NAS
 					<!--- <input name="#stObjFormItem.name#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
-					<input <cfif Trim(stObjFormItem.name) is "">name="#stObjFormItem.objectID#"<cfelse>name="#stObjFormItem.name#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#"#thisCssID# <cfif stObjFormItem.initValue is 1>checked</cfif> />
+					<input 
+						<cfif Trim(stObjFormItem.name) is "">name="#stObjFormItem.objectID#"<cfelse>name="#stObjFormItem.name#"</cfif><!--- TODO: Trond, er denne logikken sjekket? Viktig at den også fungerer slik at det valgt radiobutton huskes på valideringsiden, altså etter submit. --->
+						<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"
+						</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#"#thisCssID#
+						<cfif structkeyexists(form, stObjFormItem.name) AND form[stObjFormItem.name] EQ stObjFormItem.objectID>
+							checked
+						<cfelse>
+							<cfif stObjFormItem.initValue is 1>checked</cfif>
+						</cfif>
+					/>
 					</cfoutput>
 				</cfcase>
 				<cfcase value="list">
@@ -328,7 +338,7 @@ The cfjq_forms custom tag can also be used to easily add ajax behaviour to form 
 					
 					<cfloop list="#stObjFormItem.initValue#" index="i">
 						<cfoutput>
-						<option value="#i#">#i#</option>
+						<option value="#i#"<cfif initValue EQ i> selected</cfif>>#i#</option>
 						</cfoutput>
 					</cfloop>
 					
