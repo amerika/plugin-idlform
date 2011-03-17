@@ -1,11 +1,26 @@
 <cfsetting enablecfoutputonly="yes" />
-<!--- 
+<!--- @@Copyright: Copyright (c) 2008 IDLmedia AS. All rights reserved. --->
+<!--- @@License:
+	This file is part of FarCry Form Builder Plugin.
 
-This template will attemt to use the cfjq_forms custom tag for form client side validation services.
-Should the custom tag not be installed on the server the template will run like a normal attributes.placeError form without any validation.
+	FarCry Form Builder Plugin is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-The cfjq_forms custom tag can also be used to easily add ajax behaviour to form submition at a later time.
+	FarCry Form Builder Plugin is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with FarCry Form Builder Plugin.  If not, see <http://www.gnu.org/licenses/>.
 --->
+
+<!--- @@displayname: --->
+<!--- @@description: This template will attemt to use the cfjq_forms custom tag for form client side validation services.
+					 Should the custom tag not be installed on the server the template will run like a normal attributes.placeError form without any validation. --->
+<!--- @@author: Trond Ulseth (trond@idl.no) & Jørgen M. Skogås (jorgen@idl.no) --->
 
 <cfparam name="attributes.objectID" default="" />	<!--- The objectID of the form --->
 <cfparam name="attributes.formInfo" default="" /> 	<!--- The form info text --->

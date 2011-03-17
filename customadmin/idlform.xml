@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <webtop>
-	<section id="idlforms" permission="MainNavContentTab" label="Forms" sequence="3010">
-		<subsection id="idlformssection" permission="MainNavContentTab" sidebar="custom/sidebar.cfm" content="inc/content_overview.html" label="Forms">
+	<section id="idlforms" permission="MainNavContentTab" label="Form Builder" sequence="3010">
+		<subsection id="idlformssection" permission="MainNavContentTab" sidebar="custom/sidebar.cfm" label="Form Builder">
 			<menu sequence="1" label="Form Administration">
 				<menuitem sequence="1" label="Form List" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlform.cfm" relatedtype="idlForm" />
 			</menu>
