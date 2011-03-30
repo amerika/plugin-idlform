@@ -1,4 +1,4 @@
-<cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="true" bFriendly="true" fualias="forms">
+<cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="false" bFriendly="true" fualias="forms">
 <!--- @@Copyright: Copyright (c) 2008 IDLmedia AS. All rights reserved. --->
 <!--- @@License:
 	This file is part of FarCry Form Builder Plugin.
@@ -42,10 +42,14 @@
 				name="submittext" type="string" required="yes" default="Send"
 				ftlabel="Text for the submit button"
 				hint="Text for the submit button" />
-
-	<cfproperty ftseq="5" ftWizardStep="General" ftFieldset="Form details"
+				
+	<cfproperty ftseq="11" ftWizardStep="General" ftFieldset="Form details"
+				name="sender" type="string" required="yes" default=""
+				ftlabel="Sender (e-mail)" ftValidation="required email" />
+				
+	<cfproperty ftseq="11" ftWizardStep="General" ftFieldset="Form details"
 				name="receiver" type="string" required="yes" default=""
-				ftlabel="Receiver (email)" ftValidation="required"
+				ftlabel="Receiver (e-mail)" ftValidation="required email"
 				hint="E-mail address of the receiver of the form" />
 
 	<!--- // Form items
@@ -56,34 +60,15 @@
 				ftAllowAttach="true" ftAllowAdd="true" ftAllowEdit="true" ftRemoveType="detach"
 				hint="Holds objects to be displayed at this particular node." />
 
-	<!--- // Advanced type properties (captcha)
+	<!--- // Advanced type properties
 	----------------------------------------------------------------->
 	<cfproperty ftseq="50" ftWizardStep="Advanced" ftFieldset="Confirmation email"
 				name="confirmationFormItemID" type="UUID" required="no" default=""
 				ftlabel="E-mail field" ftType="list" ftRenderType="dropdown" ftSelectMultiple="false"
 				ftListData="getConfirmationList"
 				ftHint="Hint: Only form items with validation type email are listed here." />
-
-	<cfproperty ftseq="100" ftWizardStep="Advanced" ftFieldset="Captcha settings"
-				name="useCaptcha" type="boolean" required="no" default="false"
-				ftlabel="Enable Captcha?"
-				fthelptitle="What is Captcha?"
-				fthelpsection="An image containing a numerical or alphabetic code that can normally only be read and interpreted by a human. It is used to verify a form to prevent computers/bots from spamming the form."
-				hint="If captcha should be used or not." />
-
-	<cfproperty ftseq="101" ftWizardStep="Advanced" ftFieldset="Captcha settings"
-				name="captchaLabel" type="string" required="no" default="Fill in the text from the image bellow"
-				ftlabel="Captcha label"
-				ftjoin="idlFormItem"
-				hint="Text in front of the text recognition field." />
-
-	<cfproperty ftseq="102" ftWizardStep="Advanced" ftFieldset="Captcha settings"
-				name="captchaErrorMessage" type="string" required="no" default="You did not match the image text."
-				ftlabel="Captcha error message"
-				ftjoin="idlFormItem"
-				hint="Error to show if text recognition fails." />
 	
-	<!--- // Deactivated properties (used for backwards compatibility)
+	<!--- Hidden
 	----------------------------------------------------------------->
 	<cfproperty ftseq="" ftWizardStep="" ftFieldset=""
 				name="displayMethod" type="string" required="yes" default="displayPageStandard"
@@ -144,8 +129,13 @@
 		<cfargument name="stObj" required="yes" type="struct">
 		<cfargument name="uploadfile" required="yes" type="struct">
 		
-		<!--- set a default noreply email address, TODO: The plugin should have a config object for this --->
-		<cfset var cfMailFrom = "noreply@#cgi.HTTP_HOST#" />
+		<!--- set a default noreply email address, TODO: The plugin should have a config for this? --->
+		<cfset var cfMailFrom = arguments.stObj.sender />
+		
+		<cfif trim(cfMailFrom) EQ "">
+			<cfset var cfMailFrom = "noreply@#cgi.HTTP_HOST#" />
+		</cfif>
+		
 		<!--- create a struct to hold the status message --->
 		<cfset var stStatus = structNew() />
 		<cfset stStatus.bSuccess = true />
@@ -163,7 +153,6 @@
 		<cfelse>
 			<cfset userConfirmationEmail = "" />
 		</cfif>
-		
 		
 		<cfif len(arguments.stObj.receiver) OR len(userConfirmationEmail)>
 			

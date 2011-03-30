@@ -37,11 +37,6 @@
 <cfparam name="skipValidation" default="false" />
 
 <cfparam name="errormessage" default="" />
-
-<!--- For captcha --->
-<cfparam name="attributes.useCaptcha" default="false" />
-<cfparam name="attributes.captchaLabel" default="Fill in the text from the image bellow" />
-<cfparam name="attributes.captchaErrorMessage" default="You did not match the image text." />
 	
 <cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 
@@ -154,13 +149,6 @@
 				
 			</cfloop>
 			
-	</cfif>
-	
-	<!--- Check the captcha --->
-	<cfif attributes.useCaptcha is true>
-		<cfif not application.captcha.validateCaptcha(form.hash, form.captcha)>
-			<cfset errorMessage = Insert("<span class='label'>#Captcha#:</span> <span class='errortext'>#attributes.captchaErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
-		</cfif>
 	</cfif>
 	
 	<!--- check if form is submitted and validation passed --->
@@ -389,21 +377,6 @@
 			</cfif>
 				
 			</cfloop>
-			
-			<!--- CAPTCHA --->
-			<cfif attributes.useCaptcha is true>
-				<!--- initialize the captcha if needed --->
-				<cfif not structKeyExists(application, "captcha") or isDefined("url.init")>
-				   <cfset application.captcha = createObject("component", "farcry.plugins.idlform.captcha.captchaService").init(configFile="/farcry/plugins/idlform/captcha/captcha.xml") />
-				   <cfset application.captcha.setup()>
-				</cfif>
-				<cfoutput>
-				<label for="captcha" class="submit">#attributes.captchaLabel#</label>
-				<input type="text" name="captcha"><br />
-				<img src="/captcha/captcha.cfm?hash=#captcha.hash#">
-				<input name="hash" type="hidden" value="#captcha.hash#" />
-				</cfoutput>
-			</cfif>
 			
 			<cfoutput>
 				<label for="submitidlform" class="submit">&nbsp;</label>
