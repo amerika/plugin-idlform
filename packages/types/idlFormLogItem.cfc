@@ -21,9 +21,10 @@
 <!--- @@description: --->
 <!--- @@author: Trond Ulseth (trond@idl.no) --->
 	
-	<cfproperty name="formLogID" type="uuid" hint="ID of formLog item belongs to" required="no">
-	<cfproperty name="title" type="string" hint="Form Item title" required="yes" default="">
-	<cfproperty name="value" type="string" hint="Value of the form element" required="no" default="">
+	<cfproperty name="formLogID" type="uuid" hint="ID of formLog item belongs to" required="no" />
+	<cfproperty name="formItemID" type="uuid" hint="ID of formLog item belongs to" required="no" />
+	<cfproperty name="title" type="string" hint="Form Item title" required="yes" default="" />
+	<cfproperty name="value" type="string" hint="Value of the form element" required="no" default="" />
 	
 	<!--- create log item --->
 
@@ -33,11 +34,9 @@
 		<cfargument name="uploadfile" required="no" type="struct">
 		<cfargument name="formLogID" required="yes" type="uuid">
 
-		<cfset var oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath)>
-
 		<cfloop from="1" to="#arrayLen(arguments.stObj.aFormItems)#" index="i">
 			
-			<cfset oFormItem = oFormItemService.getData(objectID=arguments.stObj.aFormItems[i])>
+			<cfset stFormItem = application.fapi.getContentObject(arguments.stObj.aFormItems[i]) />
 			
 			<cfquery name="insertFormLogItem" datasource="#application.dsn#">
 				INSERT INTO idlFormLogItem (
@@ -45,6 +44,7 @@
 					datetimecreated,
 					datetimelastupdated,
 					formLogID,
+					formItemID,
 					title,
 					value,
 					createdby,
@@ -52,27 +52,28 @@
 				)
 				VALUES (
 					'#createUUID()#',
-					#createODBCDate(Now())#,
-					#createODBCDate(Now())#,
+					#CreateODBCDateTime(Now())#,
+					#CreateODBCDateTime(Now())#,
 					'#arguments.formLogID#',
-					<cfif (oFormItem.type is "radiobutton")>
-						'#oFormItem.title#',
-						<cfif StructKeyExists(formData,oFormItem.name) and (formData[oFormItem.name] eq oFormItem.objectID)>
+					'#stFormItem.objectID#',
+					<cfif (stFormItem.type is "radiobutton")>
+						'#stFormItem.title#',
+						<cfif StructKeyExists(formData,stFormItem.name) and (formData[stFormItem.name] eq stFormItem.objectID)>
 							'X',
 						<cfelse>
 							'',
 						</cfif>
-					<cfelseif oFormItem.type is "filefield">
-						'#oFormItem.title#',
-						<cfif StructKeyExists(uploadfile,oFormItem.objectid)>
-							'#uploadfile[oFormItem.objectid]#',
+					<cfelseif stFormItem.type is "filefield">
+						'#stFormItem.title#',
+						<cfif StructKeyExists(uploadfile,stFormItem.objectid)>
+							'#uploadfile[stFormItem.objectid]#',
 						<cfelse>
 							'No file uploaded',
 						</cfif>
 					<cfelse>
-						'#oFormItem.title#',
-						<cfif StructKeyExists(formData,oFormItem.objectid)>
-							'#formData[oFormItem.objectid]#',
+						'#stFormItem.title#',
+						<cfif StructKeyExists(formData,stFormItem.objectid)>
+							'#formData[stFormItem.objectid]#',
 						<cfelse>
 							'',
 						</cfif>
