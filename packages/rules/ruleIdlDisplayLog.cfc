@@ -39,14 +39,14 @@
 				name="formItemID" type="UUID" required="no" default=""
 				ftlabel="PageID Form Item" ftjoin="idlFormItem"
 				ftAllowAttach="true" ftAllowAdd="false" ftAllowEdit="false" ftRemoveType="detach" ftAllowCreate="false"
-				ftLibraryData="getFormItems" ftLibraryDataTypename="ruleIdlFormParticipants"
+				ftLibraryData="getFormItems" ftLibraryDataTypename="ruleIdlDisplayLog"
 				ftHint='Her velges det input elementet som tar vare på ##request.stObj.objectID##, normalt kalles denne pageID.' />
 				
 	<cfproperty ftSeq="30"
 				name="aFormItemIDs" type="array" required="no" default=""
 				ftLabel="List fields" ftType="array" ftJoin="idlFormItem"
 				ftShowLibraryLink="false" ftAllowAttach="true" ftAllowAdd="false" ftAllowEdit="false" ftRemoveType="detach" ftAllowCreate="false"
-				ftLibraryData="getFormItems" ftLibraryDataTypename="ruleIdlFormParticipants"
+				ftLibraryData="getFormItems" ftLibraryDataTypename="ruleIdlDisplayLog"
 				ftHint="Her velges de feltene som skal listes opp." />
 	
 	<cfproperty ftSeq="40"
