@@ -54,11 +54,11 @@
 						</cfloop>
 						1=2)
 					</cfif>
-				ORDER BY CASE objectID
+				ORDER BY CASE formItemID
 					<cfloop query="qFieldsToShow">
 						WHEN '#qFieldsToShow.objectID#' THEN #qFieldsToShow.currentRow#
 					</cfloop>
-					ELSE #qFieldsToShow.currentRow + 1#
+					ELSE #qFieldsToShow.recordCount + 1#
 				END
 			</cfquery>
 		
