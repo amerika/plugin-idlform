@@ -28,7 +28,7 @@
 <cfparam name="attributes.submitText" default="" />	<!--- The text in the submitbutton --->
 <cfparam name="attributes.aFormItems" default="" />	<!--- The array with formitems objectIDs --->
 <cfparam name="attributes.class" default="" />		<!--- form tags class --->
-<cfparam name="attributes.id" default="" />			<!--- form tags id --->
+<cfparam name="attributes.id" default="ID#replace(attributes.objectID, '-', '', 'ALL')#" />			<!--- form tags id --->
 
 <!--- For validation: --->
 <cfparam name="attributes.form_class" default="cfjq_form1" /> <!--- !!! validation will only work on 1 form per page right now --->
@@ -41,7 +41,10 @@
 <cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 
 <cfif thistag.executionMode eq "Start">
-
+	
+	<!--- Set form action URL --->
+	<cfset formActionURL = #application.fapi.getLink(objectID=request.stObj.objectID)# />
+	
 	<cfif trim(attributes.class) is "">
 		<cfset attributes.class = "idlform">
 	</cfif>
@@ -158,12 +161,25 @@
 		<!--- TODO: Sjekk hva stSubmitForm returnerer, denne skal ha status på lagring, osv. Dette må testes, --->
 		<cfset stSubmitForm = createObject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
 		
+		<cflocation url="#formActionURL#?bFormSaved=true###attributes.id#" addtoken="false" />
+	
+	<cfelseif structkeyexists(url, "bFormSaved")>
+		
+		<!--- Form is saved --->
 		<cfsavecontent variable="tagoutput">
 			<!--- confirmation: respons to the user  --->
-			<cfoutput>#attributes.sendtText#</cfoutput>
+			<cfoutput>
+				<div id="#attributes.id#" class="idlConfirmation">
+					#attributes.sendtText#
+				</div>
+			</cfoutput>
 		</cfsavecontent>
 		
 	<cfelse>
+		
+		<cfoutput>
+			<div id="#attributes.id#">
+		</cfoutput>
 	
 		<cfif Len(errormessage) gt 0>
 			<cfoutput>
@@ -183,9 +199,9 @@
 			</cfif>
 			
 			<cftry>
-				<cf_cfJq_forms action="" enctype="multipart/form-data" method="post" jqFolder="/jquery/cfjq"  css_class="#attributes.class#" id="#attributes.id#">
+				<cf_cfJq_forms action="#formActionURL#" enctype="multipart/form-data" method="post" jqFolder="/jquery/cfjq"  css_class="#attributes.class#">
 			<cfcatch type="any">
-				<form action="" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#"<cfif attributes.id NEQ ""> id="#attributes.id#"</cfif>>
+				<form action="#formActionURL####attributes.id#" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#">
 				<cfset skipValidation = "true">
 			</cfcatch>
 			</cftry>
@@ -320,7 +336,6 @@
 				</cfcase>
 				<cfcase value="radiobutton">
 					<cfoutput>
-						NAS
 					<!--- <input name="#stObjFormItem.name#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
 					<input 
 						<cfif Trim(stObjFormItem.name) is "">name="#stObjFormItem.objectID#"<cfelse>name="#stObjFormItem.name#"</cfif><!--- TODO: Trond, er denne logikken sjekket? Viktig at den også fungerer slik at det valgt radiobutton huskes på valideringsiden, altså etter submit. --->
@@ -431,9 +446,12 @@
 				</cfif>
 			</cfoutput>
 			
+			<!--- Close attributes.id div --->
+			<cfoutput>
+				</div>
+			</cfoutput>
 		</cfsavecontent>
 	</cfif>
-
 <cfelse>
 	
 	<!--- thistag.ExecutionMode is END --->
