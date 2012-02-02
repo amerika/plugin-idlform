@@ -47,17 +47,29 @@
 <!--- set up page header --->
 <admin:header title="Form log" />
 
-<ft:objectadmin 
-	typename="idlFormLog"
-	permissionset="news"
-	title="Form log"
-	columnList="title,receiver,datetimelastUpdated"
-	sortableColumns="title,receiver,datetimelastUpdated"
-	lFilterFields="title,receiver"
-	plugin="idlForm"
-	module="/idlFormLog.cfm"
-	lButtons="no"
-	bSelectCol="false" />
+	<cfif application.fapi.hasRole('sysadmin')>
+		<ft:objectadmin 
+			typename="idlFormLog"
+			permissionset="news"
+			title="Form log"
+			columnList="title,receiver,datetimelastUpdated"
+			sortableColumns="title,receiver,datetimelastUpdated"
+			lFilterFields="title,receiver"
+			plugin="idlForm"
+			module="/idlFormLog.cfm" />
+	<cfelse>
+		<ft:objectadmin 
+			typename="idlFormLog"
+			permissionset="news"
+			title="Form log"
+			columnList="title,receiver,datetimelastUpdated"
+			sortableColumns="title,receiver,datetimelastUpdated"
+			lFilterFields="title,receiver"
+			plugin="idlForm"
+			module="/idlFormLog.cfm"
+			lButtons="no"
+			bSelectCol="false" />
+	</cfif>
 
 <!--- setup footer --->
 <admin:footer />
