@@ -377,7 +377,7 @@
 				<cfcase value="hidden">
 					<cfoutput>
 						<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
-							<cfset thisvalue = #Evaluate(stObjFormItem.initValue)#>
+							<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
 						<cfelse>
 							<cfset thisvalue = stObjFormItem.initValue>
 						</cfif>
