@@ -22,8 +22,19 @@
 <cfimport taglib="/farcry/core/tags/webskin" prefix="skin" />
 <skin:importCSS type="jquery"/>
 
+<skin:htmlHead>
+	<cfoutput>
+		<style type="text/css" media="screen">
+			body {font-size: 0.85em;}
+			table {font-size: 1em;background-color:##ededed;}
+			th {text-align: left;}
+			th, td {border-bottom:dotted 1px ##ccc;}
+		</style>
+	</cfoutput>
+</skin:htmlHead>
+
 <cfoutput>
-	<div id="formLog"class="ui-widget ui-widget-overlay">
+	<div id="formLog" class="ui-widget ui-widget-overlay" style="padding:30px !important;">
 		<h1>#stObj.title#</h1>
 		<cfif stObj.description CONTAINS "<">
 			#stObj.description#
@@ -39,15 +50,21 @@
 </cfquery>
 
 <cfoutput>
-		<table border="0" cellspacing="5" cellpadding="5" class="ui-corner-all" style="background-color:##ededed;">
-			<tr>
-				<th>Skjema element</th>
-				<th>Brukerdata</th>
-			</tr>
+		<table border="0" cellspacing="5" cellpadding="5" class="ui-corner-all">
 			<cfloop query="qFormLogItems">
 				<tr>
-					<td>#qFormLogItems.title#</td>
-					<td>#qFormLogItems.value#</td>
+					<th>#qFormLogItems.title#</th>
+					<td>
+						<cfif isvalid("UUID", qFormLogItems.value)>
+							<a href="/#qFormLogItems.value#">#qFormLogItems.value#</a>
+						<cfelseif isvalid("URL", qFormLogItems.value)>
+							<a href="#qFormLogItems.value#">#qFormLogItems.value#</a>
+						<cfelseif isvalid("email", qFormLogItems.value)>
+							<a href="mailto:#qFormLogItems.value#">#qFormLogItems.value#</a>
+						<cfelse>
+							#qFormLogItems.value#
+						</cfif>
+					</td>
 				</tr>
 			</cfloop>
 		</table>
