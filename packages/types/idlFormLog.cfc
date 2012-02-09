@@ -49,4 +49,21 @@
 		<cfreturn stProp.objectID>
 	</cffunction>
 	
+	<cffunction name="delete" access="public" hint="Deletes content item and related entries." returntype="struct" output="false">
+		<cfargument name="objectid" required="yes" type="UUID" hint="Object ID of the object being deleted" />
+		<cfargument name="user" type="string" required="true" hint="Username for object creator" default="" />
+		<cfargument name="auditNote" type="string" required="true" hint="Note for audit trail" default="" />
+			
+		<cfset var stReturn = StructNew() />
+		
+		<!--- Delete form log items --->
+		<cfquery name="qFormLogItems" datasource="#application.dsn#">
+			DELETE FROM idlFormLogItem
+			WHERE formLogID = '#arguments.objectID#'
+		</cfquery>
+		<cfset stReturn = super.delete(argumentcollection=arguments) />
+		
+		<cfreturn stReturn>
+	</cffunction>
+	
 </cfcomponent>
