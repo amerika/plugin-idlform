@@ -20,7 +20,8 @@
 <!--- @@author: Jørgen M. Skogås on 2012-02-02 --->
 
 <cfimport taglib="/farcry/core/tags/webskin" prefix="skin" />
-<skin:importCSS type="jquery"/>
+<skin:loadJS id="jquery" />
+<skin:loadCSS id="jquery-ui" />
 
 <skin:htmlHead>
 	<cfoutput>
