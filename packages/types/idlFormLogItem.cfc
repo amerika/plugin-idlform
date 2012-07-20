@@ -24,7 +24,7 @@
 	<cfproperty name="formLogID" type="uuid" hint="ID of formLog item belongs to" required="no" />
 	<cfproperty name="formItemID" type="uuid" hint="ID of formLog item belongs to" required="no" />
 	<cfproperty name="title" type="string" hint="Form Item title" required="yes" default="" />
-	<cfproperty name="value" type="string" hint="Value of the form element" required="no" default="" />
+	<cfproperty name="value" type="longchar" hint="Value of the form element" required="no" default="" />
 	
 	<!--- create log item --->
 
