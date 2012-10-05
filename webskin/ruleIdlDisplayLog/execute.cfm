@@ -2,7 +2,7 @@
 <cfquery name="qFindFormLogIDs" datasource="#application.dsn#">
 	SELECT *
 	FROM idlFormLogItem
-	WHERE value = '#request.stObj.objectID#'
+	WHERE CAST(value AS nvarchar(35)) = '#request.stObj.objectID#' -- We only need 35 characters because we are searching for UUIDs.
 </cfquery>
 
 <cfif qFindFormLogIDs.recordCount GT 0>
