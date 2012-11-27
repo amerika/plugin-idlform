@@ -2,21 +2,23 @@
 
 div.idlform	{					margin-top:15px;
 								margin-bottom:15px;
-								background-color:#FFF;
-								border:solid 1px #990B3C;
+								/*	background-color:#FFF;
+									border:solid 1px #990B3C; */
 								padding:10px;}
 								
 div.idlform h2 {				font-weight:normal;}
 
 form.idlform {}
 
-form.idlform fieldset {			border:0px;}
+form.idlform fieldset {			border:0px;
+								margin-bottom:20px;
+								float:left;}
 
 form.idlform label {			display:block;
 								float:left;
-								width:250px;
+								width:25%;
 								margin-right: 15px;
-								border-bottom:solid 1px #EEE;}
+								/* border-bottom:solid 1px #EEE; */ }
 
 form.idlform label.submit {		border-bottom:0px;}
 
@@ -26,14 +28,11 @@ form.idlform input.text {		width:250px;
 								padding-left:3px;
 								line-height:1em;}
 
-form.idlform textarea {			width:250px;
-								height:100px;
+form.idlform textarea {			height:100px;
 								padding:3px;}
 
-form.idlform input.submit {		width:120px;
-								height:25px;
-								line-height:1em;
-								margin-left:10px;}
+div.uploader input {			width: 209px;}
+
 								
 /* ----------- Some default styling for idlForm validation handling ------------- */
 
@@ -56,3 +55,63 @@ form.idlform span.required {	color:#F00;}
 								
 form.idlform label.error {		border:none;
 								color:#F00;}
+
+/* ----------- Some width styling ------------- */
+
+
+form.idlform fieldset.w33percent {			width: 33%;}
+
+form.idlform fieldset.w33percent input.text,
+form.idlform fieldset.w33percent textarea {	width: 12%;}
+
+form.idlform fieldset.w33percent label {	width: 76%;}
+
+
+form.idlform fieldset.w50percent {			width: 50%;}
+
+form.idlform fieldset.w50percent input.text,
+form.idlform fieldset.w50percent textarea {	width: 40%;}
+
+form.idlform fieldset.w50percent label {	width: 50%;}
+
+
+form.idlform fieldset.w66percent {			width: 66%;}
+
+form.idlform fieldset.w66percent input.text,
+form.idlform fieldset.w66percent textarea {	width: 56%;}
+
+form.idlform fieldset.w66percent label {	width: 38%;}
+
+
+form.idlform fieldset.w100percent {			clear:both;
+											width:100%}
+
+form.idlform fieldset.w100percent input.text,
+form.idlform fieldset.w100percent textarea {width: 70%;}
+
+form.idlform fieldset.w100percent label {	width: 25%;}
+
+
+
+/* ----------- Fixing the datepicker styling ------------- */
+
+table.ui-datepicker-calendar {	border-collapse: separate;}
+
+.input-date-datepicker-control .ui-datepicker-header .ui-icon-circle-triangle-w {
+    background-position: -229px 7px !important;
+    left: 3px;
+}
+
+.input-date-datepicker-control .ui-datepicker-header .ui-icon-circle-triangle-e {
+    background-position: -248px 7px !important;
+    right: 3px;
+}
+
+form.idlform .form-ui-invalid {
+    box-shadow: 0 0 1.5px 1px red;
+    opacity: 1 !important;
+}
+
+form.idlform input[type='file'].form-ui-invalid {
+    opacity: 0 !important;
+}

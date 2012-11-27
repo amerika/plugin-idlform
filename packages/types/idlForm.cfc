@@ -1,4 +1,4 @@
-<cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="false" bFriendly="true" fualias="forms">
+﻿<cfcomponent displayname="Form" hint="Component to easy build forms" extends="farcry.core.packages.types.types" output="false" bFriendly="true" fualias="forms">
 <!--- @@Copyright: Copyright (c) 2008 IDLmedia AS. All rights reserved. --->
 <!--- @@License:
 	This file is part of FarCry Form Builder Plugin.
@@ -25,7 +25,7 @@
 	----------------------------------------------------------------->
 	<cfproperty ftseq="1" ftWizardStep="General" ftFieldset="Form details"
 				name="title" type="string" required="yes" default=""
-				ftlabel="Form title" ftValidation="required"
+				ftlabel="Formtitle" ftValidation="required"
 				hint="Form title" />
 
 	<cfproperty ftseq="2" ftWizardStep="General" ftFieldset="Form details"
@@ -57,7 +57,7 @@
 	<cfproperty ftseq="20" ftWizardStep="Form items" ftFieldset="Form items"
 				name="aFormItems" type="array" required="no" default=""
 				ftlabel="Selected Form Items" ftjoin="idlFormItem"
-				ftAllowAttach="true" ftAllowAdd="true" ftAllowEdit="true" ftRemoveType="detach"
+				ftAllowAttach="false" ftAllowSelect="false" ftAllowAdd="true" ftAllowEdit="true" ftRemoveType="detach"
 				hint="Holds objects to be displayed at this particular node." />
 
 	<!--- // Advanced type properties
@@ -97,7 +97,7 @@
 			<cfset oFormItem = oFormItemService.getData(objectID=stObj.aFormItems[i]) />
 			
 			<cfif oFormItem.type is "filefield" and Len(formData[oFormItem.objectid])>
-				<cffile action="upload" filefield="#oFormItem.objectid#" destination="#application.defaultfilepath#" nameconflict="makeunique" />
+				<cffile action="upload" filefield="#oFormItem.objectid#" destination="#application.path.defaultfilepath#" nameconflict="makeunique" />
 				<cfset uploadfile[#oFormItem.objectid#] = "#cffile.serverDirectory#\#cffile.serverFile#" />
 			</cfif>
 		</cfloop>
@@ -129,7 +129,7 @@
 		<cfargument name="stObj" required="yes" type="struct">
 		<cfargument name="uploadfile" required="yes" type="struct">
 		
-		<!--- set a default noreply email address, TODO: The plugin should have a config for this? --->
+		<!--- set the sender email address --->
 		<cfset var cfMailFrom = arguments.stObj.sender />
 		
 		<cfif trim(cfMailFrom) EQ "">
@@ -182,18 +182,9 @@
 					body {
 						font: 12px Arial, Helvetica, sans-serif;
 					}
-					th, td {
-						padding: 5px;
-					}
-					th {
-						background-color: ##48618A;
-						color: ##FFFFFF;
-						font-size: 12px;
-					}
-					td {
-						background-color: ##F1F1F1;	
-						font-size: 11px;
-					}
+					table {font-size: 1em;background-color:##ededed;}
+					th {text-align: left;}
+					th, td {border-bottom:dotted 1px ##ccc;}
 					.or {
 						color: ##E17000;
 					}
@@ -202,20 +193,20 @@
 					<body>
 						<strong>#arguments.stObj.title#</strong><br>
 						&nbsp;<br>
-						<table cellspacing="1" bgcolor="##CCCCCC">
+						<table cellspacing="1" bgcolor="##ededed">
 							<tr>
-								<th scope="col">Form item:</th>
-								<th scope="col">Submitted information:</th>
+								<th scope="col" style="border-bottom:dotted 1px ##ccc;">Form item:</th>
+								<th scope="col" style="border-bottom:dotted 1px ##ccc;">Submitted information:</th>
 							</tr>
 							<cfloop from="1" to="#arrayLen(arguments.stObj.aFormItems)#" index="i">
 								<cfset oFormItem = application.fapi.getContentObject(objectID=arguments.stObj.aFormItems[i]) />
 								<cfif oFormItem.type is "radiobutton">
-									<tr><td><strong>#oFormItem.title#:</strong></td><td><cfif StructKeyExists(arguments.formData,oFormItem.name) and (formData[oFormItem.name] eq oFormItem.objectID)>X</cfif></td></tr>
+									<tr><td style="border-bottom:dotted 1px ##ccc;"><strong>#oFormItem.title#:</strong></td><td style="border-bottom:dotted 1px ##ccc;"><cfif StructKeyExists(arguments.formData,oFormItem.name) and (formData[oFormItem.name] eq oFormItem.objectID)>X</cfif></td></tr>
 								<cfelseif oFormItem.type is "filefield" and StructKeyExists(arguments.uploadfile,oFormItem.objectid)>
 									<cfmailparam file="#arguments.uploadfile[oFormItem.objectid]#">
-									<tr><td><strong>#oFormItem.title#:</strong></td><td class="or">#ListLast(arguments.uploadfile[oFormItem.objectid],"\")#</td></tr>
+									<tr><td style="border-bottom:dotted 1px ##ccc;"><strong>#oFormItem.title#:</strong></td><td class="or" style="border-bottom:dotted 1px ##ccc;"><a href="http<cfif cgi.https is "on">s</cfif>://#cgi.HTTP_HOST#/files/#ListLast(arguments.uploadfile[oFormItem.objectid],"\")#" target="_blank">#ListLast(arguments.uploadfile[oFormItem.objectid],"\")#</a></td></tr>
 								<cfelse>
-									<tr><td><strong>#oFormItem.title#:</strong></td><td><cfif StructKeyExists(arguments.formData,oFormItem.objectid)>#arguments.formData[oFormItem.objectid]#</cfif></td></tr>
+									<tr><td style="border-bottom:dotted 1px ##ccc;"><strong>#oFormItem.title#:</strong></td><td style="border-bottom:dotted 1px ##ccc;"><cfif StructKeyExists(arguments.formData,oFormItem.objectid)>#arguments.formData[oFormItem.objectid]#</cfif></td></tr>
 								</cfif>
 							</cfloop>
 						</table>

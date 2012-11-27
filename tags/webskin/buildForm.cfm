@@ -22,6 +22,13 @@
 					 Should the custom tag not be installed on the server the template will run like a normal attributes.placeError form without any validation. --->
 <!--- @@author: Trond Ulseth (trond@idl.no) & Jørgen M. Skogås (jorgen@idl.no) --->
 
+<!--- import libs --->
+<cfimport taglib="/farcry/core/tags/webskin" prefix="skin" />
+
+<!--- load jquery, js scripts and css --->
+<skin:loadJs id="jquery" />
+<skin:loadCss id="jquery-ui" />
+
 <cfparam name="attributes.objectID" default="" />	<!--- The objectID of the form --->
 <cfparam name="attributes.formInfo" default="" /> 	<!--- The form info text --->
 <cfparam name="attributes.sendtText" default="" /> 	<!--- The form sendt text --->
@@ -31,32 +38,79 @@
 <cfparam name="attributes.id" default="ID#replace(attributes.objectID, '-', '', 'ALL')#" />			<!--- form tags id --->
 
 <!--- For validation: --->
-<cfparam name="attributes.form_class" default="cfjq_form1" /> <!--- !!! validation will only work on 1 form per page right now --->
-<cfparam name="attributes.placeError" default="inline" />	<!----if "box" validation error message will be placed in a box over the form--->
-<cfparam name="attributes.ajax" default="false" />		<!--- If we want to use Ajax submitions at a later time!!! --->
 <cfparam name="skipValidation" default="false" />
-
 <cfparam name="errormessage" default="" />
 	
 <cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 
 <cfif thistag.executionMode eq "Start">
-	
+
+	<!--- check if object exist in site tree --->
+	<cfscript>
+		oNav = createObject("component",application.types['dmNavigation'].typepath);
+		qNav = oNav.getParent(objectid=request.stObj.objectID);
+	</cfscript>
+	<cfif qNav.recordCount GT 0>
+		<cfset linkToID = qNav.parentID />
+	<cfelse>
+		<cfset linkToID = request.stObj.objectID />
+	</cfif> fi
+
 	<!--- Set form action URL --->
-	<cfset formActionURL = #application.fapi.getLink(objectID=request.stObj.objectID)# />
+	<cfset formActionURL = #application.fapi.getLink(objectID=linkToID)# />
 	
 	<cfif trim(attributes.class) is "">
 		<cfset attributes.class = "idlform">
 	</cfif>
 
-	<!--- include idlform.css stylesheet - if attributes.class is idlform --->
-	<cfif attributes.class is "idlform">
-		<cfhtmlhead text='<link rel="stylesheet" type="text/css" href="/css/idlform.css" media="all" />'>
+	<cfif NOT application.idlform.bIdlFormCopied and NOT application.idlform.bIdlFormAlias>
+		<skin:bubble title="IDLmedia Form Plugin" sticky="true">
+			<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an alias for the idlform plugin, or copy the js and css into the project.")#</cfoutput> 
+		</skin:bubble>
+	<cfelse>
+		<skin:loadJs id="uniformJS" />
+		<skin:loadCss id="uniformCSS" />
+		<skin:loadJs id="modernizrJS" />	
+		<skin:loadJs id="webshimJS" />
+		<skin:loadCss id="idlformCSS" />
+		<skin:onReady id="idlFormInline">
+			<cfoutput>
+				$j("select, textarea, input:checkbox, input:radio, input:file, ###attributes.id# input:submit").uniform2();
+				$j(":file").uniform2({fileBtnText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@label","Choose")#&hellip;'});
+				$j(":file").uniform2({fileDefaultText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@text","No file selected")#&hellip;'});
+				$j.webshims.setOptions("waitReady",false);
+				<cfif application.idlform.bIdlFormAlias>
+					$j.webshims.setOptions("basePath", "/idlform/js/js-webshim/dev/shims/");
+				<cfelse>	
+					$j.webshims.setOptions("basePath", "/js/js-webshim/dev/shims/");
+				</cfif>
+				
+				//The following to lines can be uncomented to accomodate translations of the webshim validation error messages. But if you set validation messages on the form element in the webtop this should not be necasarry
+				// $j.webshims.activeLang('no');
+				// $j.webshims.cfg.forms.availabeLangs.push('no');
+
+				$j.webshims.setOptions('forms', {customMessages: true});
+				
+				$j.webshims.polyfill();
+
+				$j(function(){
+					$j('form')
+						.bind('invalid', function(e){
+							e.preventDefault();
+						})
+						.bind('firstinvalid', function(e){
+							$j.webshims.validityAlert.showFor(e.target, $j.attr(e.target, 'customValidationMessage'));
+							return false;
+						})
+					;
+				});
+			</cfoutput>
+		</skin:onReady>
 	</cfif>
 
+	<!--- server side validation - In the future this should probably be moved to its own validate object --->
 	<cfif StructKeyExists(form,"submitidlform")>
-		<!--- server side validation - In the future this should probably be moved to its own validate object --->
-		
+
 			<!--- Loop through the form items --->
 			<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
 				
@@ -142,7 +196,7 @@
 				
 				<!--- if the form is of type checkbox or radiobutton we do the following validation --->
 				<cfif stObjFormItem.type is "checkbox" or stObjFormItem.type is "radiobutton">
-					<!--- TODO: add validation here --->
+					<!--- No validation here - at least for now --->
 				</cfif>
 				
 				<cfif NOT isValid>
@@ -158,11 +212,23 @@
 	<cfif StructKeyExists(form,"submitidlform") and Len(errormessage) is 0>
 		
 		<!--- send the content of the submited form by e-mail --->
-		<!--- TODO: Sjekk hva stSubmitForm returnerer, denne skal ha status på lagring, osv. Dette må testes, --->
-		<cfset stSubmitForm = createObject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
 		
-		<cflocation url="#formActionURL#?bFormSaved=true###attributes.id#" addtoken="false" />
-	
+		<cfset stSubmitForm = createObject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
+		<cfset session.stSubmitForm = stSubmitForm />
+		
+		<cfif stSubmitForm.bSuccess is true>
+			<cflocation url="#formActionURL#?bFormSaved=true###attributes.id#" addtoken="false" />
+		<cfelse>
+			<!--- Here we output if something went wrong - the different messages have not been througly tested yet --->
+			<cfoutput>
+				<p>#application.rb.getResource("idlform.buildform.errorhandling@label","Something went wrong")#:</p>
+				<p>
+					#application.rb.getResource("idlform.buildform.errorhandling@text","Message")#:<br/>
+					#stSubmitForm.message#
+				</p>
+			</cfoutput>
+		</cfif>
+
 	<cfelseif structkeyexists(url, "bFormSaved")>
 		
 		<!--- Form is saved --->
@@ -198,13 +264,8 @@
 				<div class="idlFormInfo">#attributes.formInfo#</div>
 			</cfif>
 			
-			<cftry>
-				<cf_cfJq_forms action="#formActionURL#" enctype="multipart/form-data" method="post" jqFolder="/jquery/cfjq"  css_class="#attributes.class#">
-			<cfcatch type="any">
-				<form action="#formActionURL####attributes.id#" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#">
-				<cfset skipValidation = "true">
-			</cfcatch>
-			</cftry>
+			<form action="#formActionURL####attributes.id#" method="post" enctype="multipart/form-data" name="idlform" class="#attributes.class#">
+
 		</cfoutput>
 		
 		<cfsavecontent variable="tagoutput">
@@ -245,43 +306,47 @@
 			<cfif skipValidation eq false>
 			
 				<cfif stObjFormItem.validateRequired is true>
-					<cfset validationRule = ListAppend(validationRule,"required:true")>
+					<cfset validationRule = validationRule & 'required="required"'>
 				</cfif>
 				
 				<cfswitch expression="#stObjFormItem.validateType#">
 					<cfcase value="url">
-						<cfset validationRule = ListAppend(validationRule,"url:true")>
+						<cfset validationRule = validationRule & ' type="url"'>
 					</cfcase>
 					<cfcase value="email">
-						<cfset validationRule = ListAppend(validationRule,"email:true")>
+						<cfset validationRule = validationRule & ' type="email"'>
 					</cfcase>
 					<cfcase value="date">
-						<cfset validationRule = ListAppend(validationRule,"dateDE:true")>
+						<cfset validationRule = validationRule & ' type="date"'>
 					</cfcase>
+					<!--- 
 					<cfcase value="creditcard">
-						<cfset validationRule = ListAppend(validationRule,"creditcard:true")>
+						<cfset validationRule = validationRule & ' pattern="[0-9]{13,16}"'>
 					</cfcase>
 					<cfcase value="digits">
-						<cfset validationRule = ListAppend(validationRule,"digits:true")>
-					</cfcase>
+						<cfset validationRule = validationRule & ' pattern="[0-9]{0,200}"'>
+					</cfcase> 
+					--->
 					<cfcase value="number">
-						<cfset validationRule = ListAppend(validationRule,"numberDE:true")>
+						<cfset validationRule = validationRule & ' type="number"'>
 					</cfcase>
 				</cfswitch>
 				
 				<cfif IsNumeric(stObjFormItem.validateMinLength)>
 					<cfif (stObjFormItem.validateType is "digits") or (stObjFormItem.validateType is "number")>
-						<cfset validationRule = ListAppend(validationRule,"minValue:#stObjFormItem.validateMinLength#")>
+						<cfset validationRule = validationRule & ' min="#stObjFormItem.validateMinLength#"'>
 					<cfelse>
-						<cfset validationRule = ListAppend(validationRule,"minLength:#stObjFormItem.validateMinLength#")>
+						<cfset validationRule = validationRule & ' pattern=".{#stObjFormItem.validateMinLength#,}"'>
 					</cfif>
 				</cfif>
 				
-				<cfif IsNumeric(stObjFormItem.validateMaxLength)>
+				<cfif IsNumeric(stObjFormItem.validateMaxLength) >
 					<cfif (stObjFormItem.validateType is "digits") or (stObjFormItem.validateType is "number")>
-						<cfset validationRule = ListAppend(validationRule,"maxValue:#stObjFormItem.validateMaxLength#")>
-					<cfelse>	
-						<cfset validationRule = ListAppend(validationRule,"maxLength:#stObjFormItem.validateMaxLength#")>
+						<cfset validationRule = validationRule & ' min="#stObjFormItem.validateMinLength#"'>
+					<cfelse>
+						<cfif stObjFormItem.validateMaxLength gt 0>
+							<cfset validationRule = validationRule & ' maxlength="#stObjFormItem.validateMaxLength#"'>
+						</cfif>
 					</cfif>
 				</cfif>
 				
@@ -294,7 +359,7 @@
 				<cfoutput><label for="#stObjFormItem.objectid#"></cfoutput>
 				<cfif Len(trim(stObjFormItem.title))>
 					<cfif stObjFormItem.validateRequired is true>
-						<cfoutput><span class="required">#stObjFormItem.title# *</span>:</cfoutput>
+						<cfoutput>#stObjFormItem.title# <span class="required">*</span>:</cfoutput>
 					<cfelse>
 						<cfoutput>#stObjFormItem.title#:</cfoutput>
 					</cfif>
@@ -319,39 +384,63 @@
 			
 			<cfswitch expression="#stObjFormItem.type#">
 				<cfcase value="textfield">
+					<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
+						<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
+					<cfelse>
+						<cfset thisvalue = stObjFormItem.initValue>
+					</cfif>
 					 <cfoutput>
-					<input name="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="<cfif ListLen(validationRule) gt 0>{#validationRule#}</cfif> text" value="#initValue#"#thisCssID# />
+					<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="text" value="#thisvalue#"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="textarea">
+					<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
+						<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
+					<cfelse>
+						<cfset thisvalue = stObjFormItem.initValue>
+					</cfif>
 					<cfoutput>
-					<textarea name="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual"#thisCssID#>#initValue#</textarea>
+					<textarea id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual" class="uniform"#thisCssID#>#thisvalue#</textarea>
 					</cfoutput>
 				</cfcase>
+
+				
 				<cfcase value="checkbox">
 					<cfoutput>
 					<!--- <input name="#stObjFormItem.name#" type="checkbox" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
-					<input name="#stObjFormItem.objectid#" type="checkbox" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> class="checkbox" value="X"#thisCssID# <cfif stObjFormItem.initValue is 1>checked</cfif> />
+					<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# type="checkbox" 
+						<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif>
+						class="checkbox" value="X"#thisCssID#
+						<cfif structKeyExists(form, stObjFormItem.objectid)>
+							checked
+						<cfelseif stObjFormItem.initValue is 1>
+							checked
+						</cfif>
+						
+					/>
 					</cfoutput>
 				</cfcase>
+
+
 				<cfcase value="radiobutton">
 					<cfoutput>
 					<!--- <input name="#stObjFormItem.name#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
-					<input 
+					<input id="#stObjFormItem.objectid#"
 						<cfif Trim(stObjFormItem.name) is "">name="#stObjFormItem.objectID#"<cfelse>name="#stObjFormItem.name#"</cfif><!--- TODO: Trond, er denne logikken sjekket? Viktig at den også fungerer slik at det valgt radiobutton huskes på valideringsiden, altså etter submit. --->
-						<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"
-						</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#"#thisCssID#
+						<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#"#thisCssID#
 						<cfif structkeyexists(form, stObjFormItem.name) AND form[stObjFormItem.name] EQ stObjFormItem.objectID>
 							checked
-						<cfelse>
+						<cfelseif not structkeyexists(form, stObjFormItem.name)>
 							<cfif stObjFormItem.initValue is 1>checked</cfif>
 						</cfif>
 					/>
 					</cfoutput>
 				</cfcase>
+
+
 				<cfcase value="list">
 					<cfoutput>
-					<select <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID#>
+					<select id="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID#>
 					</cfoutput>
 					
 					<cfloop list="#stObjFormItem.initValue#" index="i">
@@ -366,12 +455,13 @@
 				</cfcase>
 				<cfcase value="filefield">
 					<cfoutput>
-					<input <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#" type="file" class="file"#thisCssID# />
+					<input id="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#" type="file" class="file"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="statictext">
 					<cfoutput>
-					<span class="statictext">#stObjFormItem.initValue#</span>
+						<cfif Len(trim(stObjFormItem.title))><h2>#stObjFormItem.title#</h2></cfif>
+						<span class="statictext">#stObjFormItem.initValue#</span>
 					</cfoutput>
 				</cfcase>
 				<cfcase value="hidden">
@@ -395,55 +485,9 @@
 			
 			<cfoutput>
 				<label for="submitidlform" class="submit">&nbsp;</label>
-				<input type="submit" class="submit" name="submitidlform" id="submitidlform" value="#attributes.submittext#" />
+				<input type="submit" class="submit" value="#attributes.submittext#" name="submitidlform" />
 			</form>
-			<!--- 	
-					We use a </form> tag instead of closing the <cf_cfJq_forms> tag due to error due to the FarCry 
-					cfoutput placements.
-					
-					Therefor we must also include some other necasary code (the script bloc bellow).
-			  --->
-				  <cfif skipValidation eq false>
-				  <script type="text/javascript"> 
-					<cfif attributes.ajax>
-						$(document).ready(function() { 
-			    			var options = {
-			    				target:'#attributes.target#',
-								beforeSubmit: function(){
-									$('#attributes.target#').empty();
-									<cfif attributes.loadType eq "text">
-										$('<span class="attributes.loading_class">#attributes.loadMsg#</span>').appendTo($('#attributes.target#'));
-									<cfelseif attributes.loadType eq "img">	
-										$('<img class="attributes.loading_class" src="#attributes.loadMsg#"/>').appendTo($('#attributes.target#'));
-									</cfif>	
-								   }
-								};  
-			    			$(".#attributes.form_class#").validate({
-								<cfif attributes.placeError eq "box">
-								errorContainer: $(".messageBox#request.cfjq_form_progress#"),
-			  					errorLabelContainer: $(".messageBox#request.cfjq_form_progress# ul"),
-			  					wrapper: "li",
-								</cfif>
-			  					submitHandler: function(form) {
-			  						$(form).ajaxSubmit(options);
-			  						}
-							});
-						}); 
-						<cfelse>
-							$(document).ready(function(){
-								<cfif attributes.placeError neq "box">
-									$(".#attributes.form_class#").validate()
-								<cfelse>
-									$(".#attributes.form_class#").validate({
-										errorContainer: $(".messageBox#request.cfjq_form_progress#"),
-			  							errorLabelContainer: $(".messageBox#request.cfjq_form_progress# ul"),
-			  							wrapper: "li"
-										});
-								</cfif>
-							});
-					</cfif>
-				</script>
-				</cfif>
+				  
 			</cfoutput>
 			
 			<!--- Close attributes.id div --->
