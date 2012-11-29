@@ -17,7 +17,7 @@
 	along with FarCry Form Builder Plugin.  If not, see <http://www.gnu.org/licenses/>.
 --->
 
-<!--- @@displayname: --->
+<!--- @@displayname: Default webskin--->
 <!--- @@description: --->
 <!--- @@author: Trond Ulseth (trond@idl.no) --->
 
