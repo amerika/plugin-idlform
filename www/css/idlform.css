@@ -108,6 +108,8 @@ form.idlform .form-ui-invalid {
     opacity: 1 !important;
 }
 
-form.idlform input[type='file'].form-ui-invalid {
+form.idlform input[type='file'].form-ui-invalid,
+form.idlform input[type='checkbox'].form-ui-invalid,
+form.idlform input[type='radio'].form-ui-invalid {
     opacity: 0 !important;
 }
