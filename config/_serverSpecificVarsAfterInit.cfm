@@ -56,23 +56,19 @@ PUT PRODUCTION OR DEFAULT CODE HERE
 
 <!--- Her registrerer vi css i henhold til resultatet av sjekkene --->
 <cfif application.idlform.bIdlFormAlias>
-	<skin:registerCSS id="uniformCSS" baseHREF="/idlform/css/uniform" lfiles="uniform.default.css,uniform.aristo.css" />
+	<skin:registerCSS id="uniformCSS" baseHREF="/idlform/css/uniform" lfiles="uniform.default.css" />
+	<skin:registerCSS id="uniformTheme" baseHREF="/idlform/css/uniform" lfiles="uniform.aristo.css" />
 	<skin:registerJS id="uniformJS" baseHREF="/idlform/js/uniform" lfiles="jquery.uniform.min.js" />
-	<skin:registerJS id="modernizrJS" baseHREF="/idlform/js/js-webshim/dev/extras" lfiles="modernizr-custom.js" />    
+	<skin:registerJS id="modernizrJS" baseHREF="/idlform/js/js-webshim/dev/extras" lfiles="modernizr-custom.js" />
 	<skin:registerJS id="webshimJS" baseHREF="/idlform/js/js-webshim/dev" lfiles="polyfiller.js" />
 	<skin:registerCSS id="idlformCSS" baseHREF="/idlform/css" lfiles="idlform.css" />
-	<skin:bubble title="IDLmedia Form Plugin" sticky="false">
-		<cfoutput>Bruker alias :)</cfoutput> 
-	</skin:bubble>
 <cfelseif application.idlform.bIdlFormCopied>
 	<skin:registerCSS id="uniformCSS" baseHREF="/css/uniform" lfiles="uniform.default.css,uniform.aristo.css" />
+	<skin:registerCSS id="uniformTheme" baseHREF="/css/uniform" lfiles="uniform.aristo.css" />
 	<skin:registerJS id="uniformJS" baseHREF="/js/uniform" lfiles="jquery.uniform.min.js" />
-	<skin:registerJS id="modernizrJS" baseHREF="/js/js-webshim/dev/extras" lfiles="modernizr-custom.js" />    
+	<skin:registerJS id="modernizrJS" baseHREF="/js/js-webshim/dev/extras" lfiles="modernizr-custom.js" />
 	<skin:registerJS id="webshimJS" baseHREF="/js/js-webshim/dev" lfiles="polyfiller.js" />
 	<skin:registerCSS id="idlformCSS" baseHREF="/css" lfiles="idlform.css" />
-	<skin:bubble title="IDLmedia Form Plugin" sticky="false">
-		<cfoutput>Bruker ikke alias :)</cfoutput> 
-	</skin:bubble>
 </cfif>
 
 <!--- Om ingen av sjekkene går gjennom så sier vi i fra om dette --->
