@@ -283,9 +283,7 @@
 	
 						<cfoutput> class="</cfoutput> <!--- Start class --->
 							
-							<cfif trim(stObjFormItem.width) NEQ "">
-								<cfoutput>#trim(stObjFormItem.width)# </cfoutput>
-							</cfif>
+							<cfoutput><cfif trim(stObjFormItem.width) EQ "">w100percent<cfelse>#trim(stObjFormItem.width)#</cfif> </cfoutput>
 							
 							<cfif trim(stObjFormItem.class) NEQ "">
 								<cfoutput>#trim(stObjFormItem.class)#</cfoutput>
@@ -355,18 +353,19 @@
 								
 			<!--- display (or not) label --->
 			<cfif not ListFind(noLabel,stObjFormItem.type)>
-
-				<cfoutput><label for="#stObjFormItem.objectid#"></cfoutput>
-				<cfif Len(trim(stObjFormItem.title))>
-					<cfif stObjFormItem.validateRequired is true>
-						<cfoutput>#stObjFormItem.title# <span class="required">*</span>:</cfoutput>
-					<cfelse>
-						<cfoutput>#stObjFormItem.title#:</cfoutput>
+				<cfsavecontent variable="labelMarkup">
+					<cfoutput><label for="#stObjFormItem.objectid#" class="#stObjFormItem.type#"></cfoutput>
+					<cfif Len(trim(stObjFormItem.title))>
+						<cfif stObjFormItem.validateRequired is true>
+							<cfoutput>#stObjFormItem.title#&nbsp;<span class="required">*</span></cfoutput>
+						<cfelse>
+							<cfoutput>#stObjFormItem.title#</cfoutput>
+						</cfif>
 					</cfif>
-				</cfif>
-				
-				<cfoutput></label></cfoutput>
-						
+					<cfoutput></label></cfoutput>
+				</cfsavecontent>
+			<cfelse>
+				<cfset labelMarkup = "" />
 			</cfif>
 			
 			<cfif stObjFormItem.type NEQ "hidden" AND stObjFormItem.cssID NEQ "">
@@ -390,7 +389,8 @@
 						<cfset thisvalue = stObjFormItem.initValue>
 					</cfif>
 					 <cfoutput>
-					<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="text" value="#thisvalue#"#thisCssID# />
+						#labelMarkup#
+						<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="text" value="#thisvalue#"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="textarea">
@@ -400,72 +400,77 @@
 						<cfset thisvalue = stObjFormItem.initValue>
 					</cfif>
 					<cfoutput>
-					<textarea id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual" class="uniform"#thisCssID#>#thisvalue#</textarea>
+						#labelMarkup#
+						<textarea id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual" class="uniform"#thisCssID#>#thisvalue#</textarea>
 					</cfoutput>
 				</cfcase>
-
 				
 				<cfcase value="checkbox">
 					<cfoutput>
-					<!--- <input name="#stObjFormItem.name#" type="checkbox" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
-					<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# type="checkbox" 
-						<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif>
-						class="checkbox" value="X"#thisCssID#
-						<cfif structKeyExists(form, stObjFormItem.objectid)>
-							checked
-						<cfelseif stObjFormItem.initValue is 1>
-							checked
-						</cfif>
-						
-					/>
+						<!--- <input name="#stObjFormItem.name#" type="checkbox" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
+						<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# type="checkbox" 
+							<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif>
+							class="checkbox" value="X"#thisCssID#
+							<cfif structKeyExists(form, stObjFormItem.objectid)>
+								checked
+							<cfelseif stObjFormItem.initValue is 1>
+								checked
+							</cfif>
+						/>
+						#labelMarkup#
 					</cfoutput>
 				</cfcase>
 
 
 				<cfcase value="radiobutton">
 					<cfoutput>
-					<!--- <input name="#stObjFormItem.name#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
-					<input id="#stObjFormItem.objectid#"
-						<cfif Trim(stObjFormItem.name) is "">name="#stObjFormItem.objectID#"<cfelse>name="#stObjFormItem.name#"</cfif><!--- TODO: Trond, er denne logikken sjekket? Viktig at den også fungerer slik at det valgt radiobutton huskes på valideringsiden, altså etter submit. --->
-						<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#"#thisCssID#
-						<cfif structkeyexists(form, stObjFormItem.name) AND form[stObjFormItem.name] EQ stObjFormItem.objectID>
-							checked
-						<cfelseif not structkeyexists(form, stObjFormItem.name)>
-							<cfif stObjFormItem.initValue is 1>checked</cfif>
-						</cfif>
-					/>
+						<!--- <input name="#stObjFormItem.name#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
+						<input id="#stObjFormItem.objectid#"
+							<cfif Trim(stObjFormItem.name) is "">name="#stObjFormItem.objectID#"<cfelse>name="#stObjFormItem.name#"</cfif><!--- TODO: Trond, er denne logikken sjekket? Viktig at den også fungerer slik at det valgt radiobutton huskes på valideringsiden, altså etter submit. --->
+							<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#"#thisCssID#
+							<cfif structkeyexists(form, stObjFormItem.name) AND form[stObjFormItem.name] EQ stObjFormItem.objectID>
+								checked
+							<cfelseif not structkeyexists(form, stObjFormItem.name)>
+								<cfif stObjFormItem.initValue is 1>checked</cfif>
+							</cfif>
+						/>
+						#labelMarkup#
 					</cfoutput>
 				</cfcase>
 
 
 				<cfcase value="list">
+					#labelMarkup#
 					<cfoutput>
-					<select id="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID#>
+						<select id="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID#>
 					</cfoutput>
 					
 					<cfloop list="#stObjFormItem.initValue#" index="i">
 						<cfoutput>
-						<option value="#i#"<cfif initValue EQ i> selected</cfif>>#i#</option>
+							<option value="#i#"<cfif initValue EQ i> selected</cfif>>#i#</option>
 						</cfoutput>
 					</cfloop>
 					
 					<cfoutput>
-					</select>
+						</select>
 					</cfoutput>
 				</cfcase>
 				<cfcase value="filefield">
 					<cfoutput>
-					<input id="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#" type="file" class="file"#thisCssID# />
+						#labelMarkup#
+						<input id="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#" type="file" class="file"#thisCssID# />
 					</cfoutput>
 				</cfcase>
 				<cfcase value="statictext">
 					<cfoutput>
+						#labelMarkup#
 						<cfif Len(trim(stObjFormItem.title))><h2>#stObjFormItem.title#</h2></cfif>
 						<span class="statictext">#stObjFormItem.initValue#</span>
 					</cfoutput>
 				</cfcase>
 				<cfcase value="hidden">
 					<cfoutput>
+						#labelMarkup#
 						<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
 							<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
 						<cfelse>
