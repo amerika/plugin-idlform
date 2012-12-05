@@ -1,15 +1,7 @@
 /* ----------- Some default styling for idlForm ------------- */
-
-div.idlform	{					margin-top:15px;
-								margin-bottom:15px;
-								/*	background-color:#FFF;
-									border:solid 1px #990B3C; */
-								padding:10px;}
-								
+div.idlform	{					margin-bottom:15px;}
 div.idlform h2 {				font-weight:normal;}
-
 form.idlform {}
-
 form.idlform fieldset {			border:0px;
 								margin-bottom:20px;
 								float:left;}
@@ -17,8 +9,10 @@ form.idlform fieldset {			border:0px;
 form.idlform label {			display:block;
 								float:left;
 								width:25%;
-								margin-right: 15px;
-								/* border-bottom:solid 1px #EEE; */ }
+								margin-right: 15px;}
+
+form.idlform label.checkbox,
+form.idlform label.radiobutton {padding-top:2px;}
 
 form.idlform label.submit {		border-bottom:0px;}
 
@@ -91,7 +85,9 @@ form.idlform fieldset.w100percent textarea {width: 70%;}
 
 form.idlform fieldset.w100percent label {	width: 25%;}
 
-
+/* ----------- Checkboxes and radiobuttons ------------- */
+form.idlform fieldset .radio,
+form.idlform fieldset .checker {			margin-left: -4px;}
 
 /* ----------- Fixing the datepicker styling ------------- */
 
