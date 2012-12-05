@@ -70,7 +70,8 @@
 	<cfelse>
 		<skin:loadJs id="uniformJS" />
 		<skin:loadCss id="uniformCSS" />
-		<skin:loadJs id="modernizrJS" />	
+		<skin:loadCss id="uniformTheme" />
+		<skin:loadJs id="modernizrJS" />
 		<skin:loadJs id="webshimJS" />
 		<skin:loadCss id="idlformCSS" />
 		<skin:onReady id="idlFormInline">
