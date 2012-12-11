@@ -3,7 +3,8 @@ div.idlform	{					margin-bottom:15px;}
 div.idlform h2 {				font-weight:normal;}
 form.idlform {}
 form.idlform fieldset {			border:0px;
-								margin-bottom:20px;
+								margin:0 0 20px 0;
+								padding:0;
 								float:left;}
 
 form.idlform label {			display:block;
@@ -113,3 +114,5 @@ form.idlform input[type='checkbox'].form-ui-invalid,
 form.idlform input[type='radio'].form-ui-invalid {
     opacity: 0 !important;
 }
+
+.clear {display:block !important; clear: both; height:1px; overflow: hidden;}
