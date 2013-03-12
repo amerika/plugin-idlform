@@ -63,7 +63,7 @@
 		<cfset attributes.class = "idlform">
 	</cfif>
 
-	<cfif NOT application.idlform.bIdlFormCopied and NOT application.idlform.bIdlFormAlias>
+	<cfif application.fapi.isLoggedIn() AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
 		<skin:bubble title="IDLmedia Form Plugin" sticky="true">
 			<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an alias for the idlform plugin, or copy the js and css into the project.")#</cfoutput> 
 		</skin:bubble>

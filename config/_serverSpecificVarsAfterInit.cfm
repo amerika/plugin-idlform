@@ -73,7 +73,7 @@ PUT PRODUCTION OR DEFAULT CODE HERE
 
 <!--- Om ingen av sjekkene går gjennom så sier vi i fra om dette --->
 
-<cfif NOT application.idlform.bIdlFormCopied and NOT application.idlform.bIdlFormAlias>
+<cfif application.fapi.isLoggedIn() AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
 	<skin:bubble title="IDLmedia Form Plugin" sticky="true">
 		<cfoutput>Opprett alias for idlform plugin, eller kopier inn css til prosjektet og restart application.</cfoutput> 
 		<!--- http://afarkas.github.com/webshim/ --->
