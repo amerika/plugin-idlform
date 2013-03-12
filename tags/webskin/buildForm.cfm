@@ -65,7 +65,7 @@
 
 	<cfif application.fapi.isLoggedIn() AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
 		<skin:bubble title="IDLmedia Form Plugin" sticky="true">
-			<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an alias for the idlform plugin, or copy the js and css into the project.")#</cfoutput> 
+			<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an virtual directory in your webserver or copy the js and css into the project for the idlform plugin to work.")#</cfoutput>
 		</skin:bubble>
 	<cfelse>
 		<skin:loadJs id="uniformJS" />

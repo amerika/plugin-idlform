@@ -75,7 +75,7 @@ PUT PRODUCTION OR DEFAULT CODE HERE
 
 <cfif application.fapi.isLoggedIn() AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
 	<skin:bubble title="IDLmedia Form Plugin" sticky="true">
-		<cfoutput>Opprett alias for idlform plugin, eller kopier inn css til prosjektet og restart application.</cfoutput> 
+		<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an virtual directory in your webserver or copy the js and css into the project for the idlform plugin to work.")#</cfoutput>
 		<!--- http://afarkas.github.com/webshim/ --->
 	</skin:bubble>
 </cfif>
