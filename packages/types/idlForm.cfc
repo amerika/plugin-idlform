@@ -47,10 +47,10 @@
 				name="sender" type="string" required="yes" default=""
 				ftlabel="Sender (e-mail)" ftValidation="required email" />
 				
-	<cfproperty ftseq="11" ftWizardStep="General" ftFieldset="Form details"
+	<cfproperty ftseq="12" ftWizardStep="General" ftFieldset="Form details"
 				name="receiver" type="string" required="yes" default=""
-				ftlabel="Receiver (e-mail)" ftValidation="required email"
-				hint="E-mail address of the receiver of the form" />
+				ftlabel="Receiver (e-mail)" ftValidation="required"
+				ftHint="Bruk komma ved flere e-postadresser: eks: post@amerika.no, jorgen@amerika.no" />
 
 	<!--- // Form items
 	----------------------------------------------------------------->
