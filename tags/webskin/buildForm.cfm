@@ -95,7 +95,7 @@
 				$j.webshims.polyfill();
 
 				$j(function(){
-					$j('form')
+					$j('form.idlform')
 						.bind('invalid', function(e){
 							e.preventDefault();
 						})
@@ -335,7 +335,9 @@
 						<cfif (stObjFormItem.validateType is "digits") or (stObjFormItem.validateType is "number")>
 							<cfset validationRule = validationRule & ' min="#stObjFormItem.validateMinLength#"'>
 						<cfelse>
-							<cfset validationRule = validationRule & ' pattern=".{#stObjFormItem.validateMinLength#,}"'>
+							<cfif stObjFormItem.validateMinLength NEQ 0 AND stObjFormItem.validateMaxLength NEQ 0>
+								<cfset validationRule = validationRule & ' pattern=".{#stObjFormItem.validateMinLength#,}"'>
+							</cfif>
 						</cfif>
 					</cfif>
 				
@@ -343,7 +345,7 @@
 						<cfif (stObjFormItem.validateType is "digits") or (stObjFormItem.validateType is "number")>
 							<cfset validationRule = validationRule & ' min="#stObjFormItem.validateMinLength#"'>
 						<cfelse>
-							<cfif stObjFormItem.validateMaxLength gt 0>
+							<cfif stObjFormItem.validateMinLength NEQ 0 AND stObjFormItem.validateMaxLength NEQ 0>
 								<cfset validationRule = validationRule & ' maxlength="#stObjFormItem.validateMaxLength#"'>
 							</cfif>
 						</cfif>
@@ -443,8 +445,8 @@
 
 
 					<cfcase value="list">
-						#labelMarkup#
 						<cfoutput>
+							#labelMarkup#
 							<select id="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID# tabindex="#1000+i#">
 						</cfoutput>
 					
