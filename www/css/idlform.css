@@ -9,7 +9,7 @@ form.idlform fieldset {			border:0px;
 
 form.idlform label {			display:block;
 								float:left;
-								width:25%;
+								width: 16%;
 								margin-right: 15px;}
 
 form.idlform label.checkbox,
@@ -31,20 +31,25 @@ div.uploader input {			width: 209px;}
 								
 /* ----------- Some default styling for idlForm validation handling ------------- */
 
-div.idlform_errorMessage {		width:500px;
-								padding:10px;
-								border:solid 1px #F00;
-								background-color:#FED;
-								}
-								
+div.idlform_errorMessage {
+	background-color: #FFEEDD;
+	border: 1px solid #FF0000;
+	padding: 10px 0;
+	width: 99%;
+}
+
 div.idlform_errorMessage span.label {
-								display:block;
-								float:left;
-								width:250px;
-								margin-right: 15px;}
-								
+	display: block;
+	float: left;
+	margin: 0 10px 10px;
+	width: 33%;
+}
+
 div.idlform_errorMessage span.errortext {
-								color:#F00;}
+	color: #FF0000;
+	width: 66%;
+}
+
 								
 form.idlform span.required {	color:#F00;}
 								
@@ -54,37 +59,37 @@ form.idlform label.error {		border:none;
 /* ----------- Some width styling ------------- */
 
 
-form.idlform fieldset.w33percent {			width: 33%;}
+form.idlform fieldset.w33percent {			width: 33.33%;}
 
 form.idlform fieldset.w33percent input.text,
-form.idlform fieldset.w33percent textarea {	width: 12%;}
+form.idlform fieldset.w33percent textarea {	width: 40%;}
 
-form.idlform fieldset.w33percent label {	width: 76%;}
+form.idlform fieldset.w33percent label {	width: 48.48%;}
 
 
 form.idlform fieldset.w50percent {			width: 50%;}
 
 form.idlform fieldset.w50percent input.text,
-form.idlform fieldset.w50percent textarea {	width: 40%;}
+form.idlform fieldset.w50percent textarea {	width: 60%;}
 
-form.idlform fieldset.w50percent label {	width: 50%;}
+form.idlform fieldset.w50percent label {	width: 32%;}
 
 
-form.idlform fieldset.w66percent {			width: 66%;}
+form.idlform fieldset.w66percent {			width: 66.66%;}
 
 form.idlform fieldset.w66percent input.text,
-form.idlform fieldset.w66percent textarea {	width: 56%;}
+form.idlform fieldset.w66percent textarea {	width: 70%;}
 
-form.idlform fieldset.w66percent label {	width: 38%;}
+form.idlform fieldset.w66percent label {	width: 24.24%;}
 
 
 form.idlform fieldset.w100percent {			clear:both;
 											width:100%}
 
 form.idlform fieldset.w100percent input.text,
-form.idlform fieldset.w100percent textarea {width: 70%;}
+form.idlform fieldset.w100percent textarea {width: 80%;}
 
-form.idlform fieldset.w100percent label {	width: 25%;}
+form.idlform fieldset.w100percent label {	width: 16%;}
 
 /* ----------- Checkboxes and radiobuttons ------------- */
 form.idlform fieldset .radio,
@@ -116,3 +121,51 @@ form.idlform input[type='radio'].form-ui-invalid {
 }
 
 .clear {display:block !important; clear: both; height:1px; overflow: hidden;}
+
+
+@media only screen and (max-width: 760px) {
+	form.idlform fieldset.w33percent label,
+	form.idlform fieldset.w50percent label,
+	form.idlform fieldset.w66percent label,
+	form.idlform fieldset.w100percent label {
+	    width: 100%;
+	}
+	
+	form.idlform label.submit {display: none;}
+	
+	form.idlform fieldset.w100percent input.text,
+	form.idlform fieldset.w100percent textarea {width: 96.66%;}
+	
+	form.idlform fieldset.w66percent input.text,
+	form.idlform fieldset.w66percent textarea {width: 95%;}
+	
+	form.idlform fieldset.w50percent input.text,
+	form.idlform fieldset.w50percent textarea {width: 93%;}
+	
+	form.idlform fieldset.w33percent input.text,
+	form.idlform fieldset.w33percent textarea {width: 90%;}
+}
+
+@media only screen and (max-width: 480px) {
+	
+	form.idlform fieldset.w33percent,
+	form.idlform fieldset.w50percent,
+	form.idlform fieldset.w66percent,
+	form.idlform fieldset.w100percent {width: 100%;}
+	
+	form.idlform fieldset.w33percent label,
+	form.idlform fieldset.w50percent label,
+	form.idlform fieldset.w66percent label,
+	form.idlform fieldset.w100percent label {
+	    width: 100%;
+	}
+	
+	form.idlform fieldset.w33percent input.text,
+	form.idlform fieldset.w33percent textarea,
+	form.idlform fieldset.w50percent input.text,
+	form.idlform fieldset.w50percent textarea,
+	form.idlform fieldset.w66percent input.text,
+	form.idlform fieldset.w66percent textarea,
+	form.idlform fieldset.w100percent input.text,
+	form.idlform fieldset.w100percent textarea {width: 95%;}
+}
