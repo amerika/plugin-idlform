@@ -1,4 +1,4 @@
-<cfset lItemNames = "" />
+﻿<cfset lItemNames = "" />
 <cfloop list="#session.forExcel.lFormList2#" index="i">
 	<cfquery name="colName" dbtype="query">
 	SELECT title

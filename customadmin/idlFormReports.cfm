@@ -1,4 +1,4 @@
-<cfsetting enablecfoutputonly="yes" />
+﻿<cfsetting enablecfoutputonly="yes" />
 <!--- @@Copyright: Copyright (c) 2009 IDLmedia AS. All rights reserved. --->
 <!--- @@License:
 	This file is part of FarCry Form Builder Plugin.
