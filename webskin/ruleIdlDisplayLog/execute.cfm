@@ -7,7 +7,7 @@
 
 <cfif qFindFormLogIDs.recordCount GT 0>
 	<!--- get form item that contains the pageid --->
-	<cfquery name="qFormLogs" datasource="#application.dsn#" maxRows="100">
+	<cfquery name="qFormLogs" datasource="#application.dsn#">
 		SELECT *
 		FROM idlFormLog
 		WHERE objectID IN(#quotedvaluelist(qFindFormLogIDs.formLogID)#)

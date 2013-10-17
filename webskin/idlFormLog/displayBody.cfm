@@ -20,6 +20,7 @@
 <!--- @@author: Jørgen M. Skogås on 2012-02-02 --->
 
 <cfimport taglib="/farcry/core/tags/webskin" prefix="skin" />
+
 <skin:loadJS id="jquery" />
 <skin:loadCSS id="jquery-ui" />
 
@@ -34,15 +35,6 @@
 	</cfoutput>
 </skin:htmlHead>
 
-<cfoutput>
-	<div id="formLog" class="ui-widget ui-widget-overlay" style="padding:30px !important;">
-		<h1>#stObj.title#</h1>
-		<cfif stObj.description CONTAINS "<">
-			#stObj.description#
-		<cfelse>
-			<p>#stObj.description#</p>
-		</cfif>
-</cfoutput>
 
 <cfquery name="qFormLogItems" datasource="#application.dsn#">
 	SELECT *
@@ -62,6 +54,8 @@
 							<a href="#qFormLogItems.value#">#qFormLogItems.value#</a>
 						<cfelseif isvalid("email", qFormLogItems.value)>
 							<a href="mailto:#qFormLogItems.value#">#qFormLogItems.value#</a>
+						<cfelseif FileExists(qFormLogItems.value)>
+							<a href="/files/#GetFileFromPath(qFormLogItems.value)#" target="_blank">#GetFileFromPath(qFormLogItems.value)#</a>
 						<cfelse>
 							#qFormLogItems.value#
 						</cfif>
@@ -69,7 +63,6 @@
 				</tr>
 			</cfloop>
 		</table>
-	</div>
 </cfoutput>
 
 <cfsetting enablecfoutputonly="false" />

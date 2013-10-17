@@ -30,7 +30,7 @@
 <ft:objectadmin 
 	typename="idlForm"
 	permissionset="news"
-	title="Forms"
+	title="#application.rb.getResource("idlform.customadmin@label","Forms")#"
 	columnList="title,receiver,datetimelastUpdated"
 	sortableColumns="title,receiver,datetimelastUpdated"
 	lFilterFields="title,receiver"
