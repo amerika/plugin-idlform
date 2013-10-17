@@ -1,7 +1,4 @@
-<cfset filename = "Excel_#DateFormat(now(),'yymmdd')##TimeFormat(now(),'hhmmss')#.xls" />
-
 <cfset lItemNames = "" />
-
 <cfloop list="#session.forExcel.lFormList2#" index="i">
 	<cfquery name="colName" dbtype="query">
 	SELECT title
@@ -11,25 +8,27 @@
 	<cfset lItemNames = listAppend(lItemNames,colName.title) />
 </cfloop>
 
+<!--- Set filename --->
+<cfif session.forExcel.qFormLogs.recordCount GT 0>
+	<cfset filename = "#session.forExcel.qFormLogs.title#-#DateFormat(now(),'yyyy-mm-dd')#-#TimeFormat(now(),'hh-mm-ss')#.xls" />
+<cfelse>
+	<cfset filename = "excel-#DateFormat(now(),'yyyy-mm-dd')#-#TimeFormat(now(),'hh-mm-ss')#.xls" />
+</cfif>
+
 <cfscript> 
+	theDir=ExpandPath('/excel/'); 
+	theFile=theDir & filename;
 
-    theDir=ExpandPath('/excel/'); 
-
-    theFile=theDir & filename;
-
-    //Create empty ColdFusion spreadsheet objects. ---> 
-
-    theSheet = SpreadsheetNew("Excel report");
-
+	//Create empty ColdFusion spreadsheet objects. ---> 
+	theSheet = SpreadsheetNew("Excel report");
 	SpreadsheetAddrow(theSheet, "Date,#lItemNames#");
 
 	format1 = structNew();
-    format1.color="dark_blue;";
-    format1.italic="true";
-    format1.bold="true";
-    format1.alignment="left";
-    SpreadsheetFormatRow(theSheet,format1,"1");
-
+	format1.color="dark_blue;";
+	format1.italic="true";
+	format1.bold="true";
+	format1.alignment="left";
+	SpreadsheetFormatRow(theSheet,format1,"1");
 </cfscript>
 
 <cfloop query="session.forExcel.qFormLogs">
@@ -65,12 +64,5 @@
 	</cfscript>
 </cfloop>
 
-
-<cfspreadsheet
-    action = "write" 
-    filename = "#theFile#"
-    name = "theSheet"
-    overwrite = "true" 
-    sheetname = "Excel report" >
-
-<cfoutput>Excel file generated. <a href="/excel/#filename#" target="_blank">Click here to download</a>.</cfoutput>
+<cfheader name="Content-Disposition" value="attachment; filename=#filename#">
+<cfcontent type="application/msexcel" variable="#spreadSheetReadBinary(theSheet)#" reset="true">
