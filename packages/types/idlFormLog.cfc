@@ -21,10 +21,15 @@
 <!--- @@description: --->
 <!--- @@author: Trond Ulseth (trond@idl.no) --->
 
-	<cfproperty name="formID" type="uuid" hint="the ID of the form being logged" required="yes">
-	<cfproperty name="title" type="string" hint="Form title" required="yes" default="">
-	<cfproperty name="description" type="longchar" hint="Description / introdoctury text for the form" required="no" default="">
-	<cfproperty name="receiver" type="string" hint="E-mail address of the receiver of the form" required="no" default="">
+	<cfproperty name="title" type="string" required="yes" default=""
+				ftLabel="Skjematittel"/>
+				
+	<cfproperty name="receiver" type="string" required="yes" default=""
+				ftLabel="E-postmottaker"/>
+
+	<cfproperty name="formID" type="uuid" required="yes" />
+	<cfproperty name="description" type="longchar" required="no" default="" />
+	<cfproperty name="dateTimeCreated" type="date" required="yes" default="" ftType="datetime" ftDisplayPrettyDate="false" />
 	
 	<!--- create log file --->
 
