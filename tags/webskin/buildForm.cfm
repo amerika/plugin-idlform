@@ -387,24 +387,20 @@
 				<cfswitch expression="#stObjFormItem.type#">
 					<cfcase value="textfield">
 						<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
-							<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
-						<cfelse>
-							<cfset thisvalue = stObjFormItem.initValue>
+							<cfset initValue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
 						</cfif>
 						 <cfoutput>
 							#labelMarkup#
-							<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="text" value="#thisvalue#"#thisCssID# tabindex="#1000+i#" />
+							<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="text" value="#initValue#" #thisCssID# tabindex="#1000+i#" />
 						</cfoutput>
 					</cfcase>
 					<cfcase value="textarea">
 						<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
-							<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
-						<cfelse>
-							<cfset thisvalue = stObjFormItem.initValue>
+							<cfset initValue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
 						</cfif>
 						<cfoutput>
 							#labelMarkup#
-							<textarea id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual" class="uniform"#thisCssID# tabindex="#1000+i#">#thisvalue#</textarea>
+							<textarea id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual" class="uniform"#thisCssID# tabindex="#1000+i#">#initValue#</textarea>
 						</cfoutput>
 					</cfcase>
 				
