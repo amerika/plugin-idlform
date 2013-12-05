@@ -372,7 +372,7 @@
 				</cfif>
 			
 				<cfif stObjFormItem.type NEQ "hidden" AND stObjFormItem.cssID NEQ "">
-					<cfset thisCssID = ' id="#stObjFormItem.cssID#"' />
+					<cfset thisCssID = stObjFormItem.cssID />
 				<cfelse>
 					<cfset thisCssID = "" />
 				</cfif>
@@ -391,7 +391,7 @@
 						</cfif>
 						 <cfoutput>
 							#labelMarkup#
-							<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="text" value="#initValue#" #thisCssID# tabindex="#1000+i#" />
+							<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="text" value="#initValue#" id="#thisCssID#" tabindex="#1000+i#" />
 						</cfoutput>
 					</cfcase>
 					<cfcase value="textarea">
@@ -400,16 +400,16 @@
 						</cfif>
 						<cfoutput>
 							#labelMarkup#
-							<textarea id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual" class="uniform"#thisCssID# tabindex="#1000+i#">#initValue#</textarea>
+							<textarea id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual" class="uniform" id="#thisCssID#" tabindex="#1000+i#">#initValue#</textarea>
 						</cfoutput>
 					</cfcase>
 				
 					<cfcase value="checkbox">
 						<cfoutput>
-							<!--- <input name="#stObjFormItem.name#" type="checkbox" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
+							<!--- <input name="#stObjFormItem.name#" type="checkbox" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> class="checkbox" value="#stObjFormItem.initValue#" id="#thisCssID#" <cfif initValue is 1>checked</cfif> /> --->
 							<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# type="checkbox" 
 								<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif>
-								class="checkbox" value="X"#thisCssID#
+								class="checkbox" value="X" id="#thisCssID#" 
 								<cfif structKeyExists(form, stObjFormItem.objectid)>
 									checked 
 								<cfelseif stObjFormItem.initValue is 1>
@@ -424,10 +424,10 @@
 
 					<cfcase value="radiobutton">
 						<cfoutput>
-							<!--- <input name="#stObjFormItem.name#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.initValue#"#thisCssID# <cfif initValue is 1>checked</cfif> /> --->
+							<!--- <input name="#stObjFormItem.name#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.initValue#" id="#thisCssID#" <cfif initValue is 1>checked</cfif> /> --->
 							<input id="#stObjFormItem.objectid#"
 								<cfif Trim(stObjFormItem.name) is "">name="#stObjFormItem.objectID#"<cfelse>name="#stObjFormItem.name#"</cfif><!--- TODO: Trond, er denne logikken sjekket? Viktig at den også fungerer slik at det valgt radiobutton huskes på valideringsiden, altså etter submit. --->
-								<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#"#thisCssID#
+								<cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="radio" class="radio" value="#stObjFormItem.objectID#" id="#thisCssID#" 
 								<cfif structkeyexists(form, stObjFormItem.name) AND form[stObjFormItem.name] EQ stObjFormItem.objectID>
 									checked 
 								<cfelseif not structkeyexists(form, stObjFormItem.name)>
@@ -443,7 +443,7 @@
 					<cfcase value="list">
 						<cfoutput>
 							#labelMarkup#
-							<select id="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID# tabindex="#1000+i#">
+							<select id="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#" id="#thisCssID#" tabindex="#1000+i#">
 						</cfoutput>
 					
 						<cfloop list="#stObjFormItem.initValue#" index="i">
@@ -459,7 +459,7 @@
 					<cfcase value="filefield">
 						<cfoutput>
 							#labelMarkup#
-							<input id="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#" type="file" class="file"#thisCssID# tabindex="#1000+i#" />
+							<input id="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#" type="file" class="file" id="#thisCssID#" tabindex="#1000+i#" />
 						</cfoutput>
 					</cfcase>
 					<cfcase value="statictext">
