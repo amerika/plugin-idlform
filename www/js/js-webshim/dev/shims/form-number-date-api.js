@@ -1,7 +1,9 @@
-jQuery.webshims.register('form-number-date-api', function($, webshims, window, document, undefined){
+webshims.register('form-number-date-api', function($, webshims, window, document, undefined, options){
 	"use strict";
+	if(!webshims.addInputType){
+		webshims.error("you can not call forms-ext feature after calling forms feature. call both at once instead: $.webshims.polyfill('forms forms-ext')");
+	}
 	
-	//ToDo
 	if(!webshims.getStep){
 		webshims.getStep = function(elem, type){
 			var step = $.attr(elem, 'step');
@@ -13,7 +15,7 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 				return step;
 			}
 			step = typeProtos.number.asNumber(step);
-			return ((!isNaN(step) && step > 0) ? step : typeModels[type].step) * typeModels[type].stepScaleFactor;
+			return ((!isNaN(step) && step > 0) ? step : typeModels[type].step) * (typeModels[type].stepScaleFactor || 1);
 		};
 	}
 	if(!webshims.addMinMaxNumberToCache){
@@ -40,7 +42,7 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 			return (elem.getAttribute('type') || '').toLowerCase();
 		},
 		isDateTimePart = function(string){
-			return (isNumber(string) || (string && string == '0' + (string * 1)));
+			return (string && !(isNaN(string * 1)));
 		},
 		addMinMaxNumberToCache = webshims.addMinMaxNumberToCache,
 		addleadingZero = function(val, len){
@@ -52,7 +54,7 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 			return val;
 		},
 		EPS = 1e-7,
-		typeBugs = webshims.bugs.valueAsNumberSet || webshims.bugs.bustedValidity
+		typeBugs = webshims.bugs.bustedValidity
 	;
 	
 	webshims.addValidityRule('stepMismatch', function(input, val, cache, validityState){
@@ -60,11 +62,9 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 		if(!('type' in cache)){
 			cache.type = getType(input[0]);
 		}
-		//stepmismatch with date is computable, but it would be a typeMismatch (performance)
-		if(cache.type == 'date'){
-			return false;
-		}
-		var ret = (validityState || {}).stepMismatch, base;
+		if(cache.type == 'week'){return false;}
+		var base, attrVal;
+		var ret = (validityState || {}).stepMismatch || false;
 		if(typeModels[cache.type] && typeModels[cache.type].step){
 			if( !('step' in cache) ){
 				cache.step = webshims.getStep(input[0], cache.type);
@@ -79,6 +79,11 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 			
 			addMinMaxNumberToCache('min', input, cache);
 			base = cache.minAsNumber;
+			
+			if(isNaN(base) && (attrVal = input.prop('defaultValue'))){
+				base = typeModels[cache.type].asNumber( attrVal );
+			}
+			
 			if(isNaN(base)){
 				base = typeModels[cache.type].stepBase || 0;
 			}
@@ -148,10 +153,10 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 					if(set !==  false){
 						$.prop(elem, 'value', set);
 					} else {
-						webshims.warn('INVALID_STATE_ERR: DOM Exception 11');
+						webshims.error('INVALID_STATE_ERR: DOM Exception 11');
 					}
-				} else {
-					valueAsNumberDescriptor.prop._supset && valueAsNumberDescriptor.prop._supset.apply(elem, arguments);
+				} else if(valueAsNumberDescriptor.prop._supset) {
+					 valueAsNumberDescriptor.prop._supset.apply(elem, arguments);
 				}
 			}
 		}
@@ -180,7 +185,7 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 						$.prop(elem, 'value', set);
 						return set;
 					} else {
-						webshims.warn('INVALID_STATE_ERR: DOM Exception 11');
+						webshims.error('INVALID_STATE_ERR: DOM Exception 11');
 					}
 				} else {
 					return valueAsDateDescriptor.prop._supset && valueAsDateDescriptor.prop._supset.apply(elem, arguments) || null;
@@ -189,10 +194,105 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 		}
 	});
 	
+	$.each({stepUp: 1, stepDown: -1}, function(name, stepFactor){
+		var stepDescriptor = webshims.defineNodeNameProperty('input', name, {
+			prop: {
+				value: function(factor){
+					var step, val, dateVal, valModStep, alignValue, cache, base, attrVal;
+					var type = getType(this);
+					if(typeModels[type] && typeModels[type].asNumber){
+						cache = {type: type};
+						if(!factor){
+							factor = 1;
+							webshims.warn("you should always use a factor for stepUp/stepDown");
+						}
+						factor *= stepFactor;
+						
+						val = $.prop(this, 'valueAsNumber');
+						
+						if(isNaN(val)){
+							webshims.info("valueAsNumber is NaN can't apply stepUp/stepDown ");
+							throw('invalid state error');
+						}
+						
+						step = webshims.getStep(this, type);
+						
+						if(step == 'any'){
+							webshims.info("step is 'any' can't apply stepUp/stepDown");
+							throw('invalid state error');
+						}
+						
+						webshims.addMinMaxNumberToCache('min', $(this), cache);
+						webshims.addMinMaxNumberToCache('max', $(this), cache);
+						
+						base = cache.minAsNumber;
+						
+						if(isNaN(base) && (attrVal = $.prop(this, 'defaultValue'))){
+							base = typeModels[type].asNumber( attrVal );
+						}
+						
+						if(!base){
+							base = 0;
+						}
+						
+						step *= factor;
+						
+						val = (val + step).toFixed(5) * 1;
+						
+						valModStep = (val - base) % step;
+						
+						if ( valModStep && (Math.abs(valModStep) > EPS) ) {
+							alignValue = val - valModStep;
+							alignValue += ( valModStep > 0 ) ? step : ( -step );
+							val = alignValue.toFixed(5) * 1;
+						}
+						
+						if( (!isNaN(cache.maxAsNumber) && val > cache.maxAsNumber) || (!isNaN(cache.minAsNumber) && val < cache.minAsNumber) ){
+							webshims.info("max/min overflow can't apply stepUp/stepDown");
+							throw('invalid state error');
+						}
+						
+						$.prop(this, 'valueAsNumber', val);
+						
+					} else if(stepDescriptor.prop && stepDescriptor.prop._supvalue){
+						return stepDescriptor.prop._supvalue.apply(this, arguments);
+					} else {
+						webshims.info("no step method for type: "+ type);
+						throw('invalid state error');
+					}
+				}
+			}
+		});
+	});
+	
+	/*
+	 * ToDO: WEEK
+	 */
+//	var getWeek = function(date){
+//		var time;
+//		var checkDate = new Date(date.getTime());
+//
+//		checkDate.setDate(checkDate.getDate() + 4 - (checkDate.getDay() || 7));
+//
+//		time = checkDate.getTime();
+//		checkDate.setMonth(0);
+//		checkDate.setDate(1);
+//		return Math.floor(Math.round((time - checkDate) / 86400000) / 7) + 1;
+//	};
+//	
+//	var setWeek = function(year, week){
+//		var date = new Date(year, 0, 1);
+//		
+//		week = (week - 1) * 86400000 * 7;
+//		date = new Date(date.getTime() + week);
+//		date.setDate(date.getDate() + 1 - (date.getDay() || 7));
+//		return date;
+//	};
+	
 	var typeProtos = {
 		
 		number: {
-			mismatch: function(val){
+			bad: function(val){
 				return !(isNumber(val));
 			},
 			step: 1,
@@ -210,37 +310,48 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 			minDefault: 0,
 			maxDefault: 100
 		},
-		
+		color: {
+			bad: (function(){
+				var cReg = /^\u0023[a-f0-9]{6}$/;
+				return function(val){
+					return (!val || val.length != 7 || !(cReg.test(val)));
+				};
+			})()
+		},
 		date: {
-			mismatch: function(val){
+			bad: function(val){
 				if(!val || !val.split || !(/\d$/.test(val))){return true;}
+				var i;
 				var valA = val.split(/\u002D/);
 				if(valA.length !== 3){return true;}
 				var ret = false;
-				$.each(valA, function(i, part){
-					if(!isDateTimePart(part)){
-						ret = true;
-						return false;
-					}
-				});
-				if(ret){return ret;}
-				if(valA[0].length !== 4 || valA[1].length != 2 || valA[1] > 12 || valA[2].length != 2 || valA[2] > 33){
+				
+				
+				if(valA[0].length < 4 || valA[1].length != 2 || valA[1] > 12 || valA[2].length != 2 || valA[2] > 33){
 					ret = true;
+				} else {
+					for(i = 0; i < 3; i++){
+						if(!isDateTimePart(valA[i])){
+							ret = true;
+							break;
+						}
+					}
 				}
-				return (val !== this.dateToString( this.asDate(val, true) ) );
+				
+				return ret || (val !== this.dateToString( this.asDate(val, true) ) );
 			},
 			step: 1,
 			//stepBase: 0, 0 = default
 			stepScaleFactor:  86400000,
 			asDate: function(val, _noMismatch){
-				if(!_noMismatch && this.mismatch(val)){
+				if(!_noMismatch && this.bad(val)){
 					return null;
 				}
 				return new Date(this.asNumber(val, true));
 			},
 			asNumber: function(str, _noMismatch){
 				var ret = nan;
-				if(_noMismatch || !this.mismatch(str)){
+				if(_noMismatch || !this.bad(str)){
 					str = str.split(/\u002D/);
 					ret = Date.UTC(str[0], str[1] - 1, str[2]);
 				}
@@ -250,135 +361,246 @@ jQuery.webshims.register('form-number-date-api', function($, webshims, window, d
 				return (isNumber(num)) ? this.dateToString(new Date( num * 1)) : false;
 			},
 			dateToString: function(date){
-				return (date && date.getFullYear) ? date.getUTCFullYear() +'-'+ addleadingZero(date.getUTCMonth()+1, 2) +'-'+ addleadingZero(date.getUTCDate(), 2) : false;
+				return (date && date.getFullYear) ? addleadingZero(date.getUTCFullYear(), 4) +'-'+ addleadingZero(date.getUTCMonth()+1, 2) +'-'+ addleadingZero(date.getUTCDate(), 2) : false;
 			}
-		}
-//		,time: {
-//			mismatch: function(val, _getParsed){
-//				if(!val || !val.split || !(/\d$/.test(val))){return true;}
-//				val = val.split(/\u003A/);
-//				if(val.length < 2 || val.length > 3){return true;}
-//				var ret = false,
-//					sFraction;
-//				if(val[2]){
-//					val[2] = val[2].split(/\u002E/);
-//					sFraction = parseInt(val[2][1], 10);
-//					val[2] = val[2][0];
+		},
+		/*
+		 * ToDO: WEEK
+		 */
+//		week: {
+//			bad: function(val){
+//				if(!val || !val.split){return true;}
+//				var valA = val.split('-W');
+//				var ret = true;
+//				if(valA.length == 2 && valA[0].length > 3 && valA.length == 2){
+//					ret = this.dateToString(setWeek(valA[0], valA[1])) != val;
 //				}
-//				$.each(val, function(i, part){
-//					if(!isDateTimePart(part) || part.length !== 2){
-//						ret = true;
-//						return false;
-//					}
-//				});
-//				if(ret){return true;}
-//				if(val[0] > 23 || val[0] < 0 || val[1] > 59 || val[1] < 0){
-//					return true;
-//				}
-//				if(val[2] && (val[2] > 59 || val[2] < 0 )){
-//					return true;
-//				}
-//				if(sFraction && isNaN(sFraction)){
-//					return true;
-//				}
-//				if(sFraction){
-//					if(sFraction < 100){
-//						sFraction *= 100;
-//					} else if(sFraction < 10){
-//						sFraction *= 10;
-//					}
-//				}
-//				return (_getParsed === true) ? [val, sFraction] : false;
+//				return ret;
 //			},
-//			step: 60,
-//			stepBase: 0,
-//			stepScaleFactor:  1000,
-//			asDate: function(val){
-//				val = new Date(this.asNumber(val));
-//				return (isNaN(val)) ? null : val;
+//			step: 1,
+//			stepScaleFactor: 604800000,
+//			stepBase: -259200000,
+//			asDate: function(str, _noMismatch){
+//				var ret = null;
+//				if(_noMismatch || !this.bad(str)){
+//					ret = str.split('-W');
+//					ret = setWeek(ret[0], ret[1]);
+//				}
+//				return ret;
 //			},
-//			asNumber: function(val){
+//			asNumber: function(str, _noMismatch){
 //				var ret = nan;
-//				val = this.mismatch(val, true);
-//				if(val !== true){
-//					ret = Date.UTC('1970', 0, 1, val[0][0], val[0][1], val[0][2] || 0);
-//					if(val[1]){
-//						ret += val[1];
-//					}
+//				var date = this.asDate(str, _noMismatch);
+//				if(date && date.getUTCFullYear){
+//					ret = date.getTime();
 //				}
 //				return ret;
 //			},
 //			dateToString: function(date){
-//				if(date && date.getUTCHours){
-//					var str = addleadingZero(date.getUTCHours(), 2) +':'+ addleadingZero(date.getUTCMinutes(), 2),
-//						tmp = date.getSeconds()
-//					;
-//					if(tmp != "0"){
-//						str += ':'+ addleadingZero(tmp, 2);
+//				var week, checkDate;
+//				var ret = false;
+//				if(date && date.getFullYear){
+//					week = getWeek(date);
+//					if(week == 1){
+//						checkDate = new Date(date.getTime());
+//						checkDate.setDate(checkDate.getDate() + 7);
+//						date.setUTCFullYear(checkDate.getUTCFullYear());
 //					}
-//					tmp = date.getUTCMilliseconds();
-//					if(tmp != "0"){
-//						str += '.'+ addleadingZero(tmp, 3);
-//					}
-//					return str;
-//				} else {
-//					return false;
-//				}
-//			}
-//		}
-//		,'datetime-local': {
-//			mismatch: function(val, _getParsed){
-//				if(!val || !val.split || (val+'special').split(/\u0054/).length !== 2){return true;}
-//				val = val.split(/\u0054/);
-//				return ( typeProtos.date.mismatch(val[0]) || typeProtos.time.mismatch(val[1], _getParsed) );
-//			},
-//			noAsDate: true,
-//			asDate: function(val){
-//				val = new Date(this.asNumber(val));
-//				
-//				return (isNaN(val)) ? null : val;
-//			},
-//			asNumber: function(val){
-//				var ret = nan;
-//				var time = this.mismatch(val, true);
-//				if(time !== true){
-//					val = val.split(/\u0054/)[0].split(/\u002D/);
-//					
-//					ret = Date.UTC(val[0], val[1] - 1, val[2], time[0][0], time[0][1], time[0][2] || 0);
-//					if(time[1]){
-//						ret += time[1];
-//					}
+//					ret = addleadingZero(date.getUTCFullYear(), 4) +'-W'+addleadingZero(week, 2);
 //				}
 //				return ret;
 //			},
-//			dateToString: function(date, _getParsed){
-//				return typeProtos.date.dateToString(date) +'T'+ typeProtos.time.dateToString(date, _getParsed);
+//			numberToString: function(num){
+//				return (isNumber(num)) ? this.dateToString(new Date( num * 1)) : false;
 //			}
-//		}
+//		},
+		time: {
+			bad: function(val, _getParsed){
+				if(!val || !val.split || !(/\d$/.test(val))){return true;}
+				val = val.split(/\u003A/);
+				if(val.length < 2 || val.length > 3){return true;}
+				var ret = false,
+					sFraction;
+				if(val[2]){
+					val[2] = val[2].split(/\u002E/);
+					sFraction = parseInt(val[2][1], 10);
+					val[2] = val[2][0];
+				}
+				$.each(val, function(i, part){
+					if(!isDateTimePart(part) || part.length !== 2){
+						ret = true;
+						return false;
+					}
+				});
+				if(ret){return true;}
+				if(val[0] > 23 || val[0] < 0 || val[1] > 59 || val[1] < 0){
+					return true;
+				}
+				if(val[2] && (val[2] > 59 || val[2] < 0 )){
+					return true;
+				}
+				if(sFraction && isNaN(sFraction)){
+					return true;
+				}
+				if(sFraction){
+					if(sFraction < 100){
+						sFraction *= 100;
+					} else if(sFraction < 10){
+						sFraction *= 10;
+					}
+				}
+				return (_getParsed === true) ? [val, sFraction] : false;
+			},
+			step: 60,
+			stepBase: 0,
+			stepScaleFactor:  1000,
+			asDate: function(val){
+				val = new Date(this.asNumber(val));
+				return (isNaN(val)) ? null : val;
+			},
+			asNumber: function(val){
+				var ret = nan;
+				val = this.bad(val, true);
+				if(val !== true){
+					ret = Date.UTC('1970', 0, 1, val[0][0], val[0][1], val[0][2] || 0);
+					if(val[1]){
+						ret += val[1];
+					}
+				}
+				return ret;
+			},
+			dateToString: function(date){
+				if(date && date.getUTCHours){
+					var str = addleadingZero(date.getUTCHours(), 2) +':'+ addleadingZero(date.getUTCMinutes(), 2),
+						tmp = date.getSeconds()
+					;
+					if(tmp != "0"){
+						str += ':'+ addleadingZero(tmp, 2);
+					}
+					tmp = date.getUTCMilliseconds();
+					if(tmp != "0"){
+						str += '.'+ addleadingZero(tmp, 3);
+					}
+					return str;
+				} else {
+					return false;
+				}
+			}
+		},
+		month: {
+			bad: function(val){
+				return typeProtos.date.bad(val+'-01');
+			},
+			step: 1,
+			stepScaleFactor:  false,
+			//stepBase: 0, 0 = default
+			asDate: function(val){
+				return new Date(typeProtos.date.asNumber(val+'-01'));
+			},
+			asNumber: function(val){
+				//1970-01
+				var ret = nan;
+				if(val && !this.bad(val)){
+					val = val.split(/\u002D/);
+					val[0] = (val[0] * 1) - 1970;
+					val[1] = (val[1] * 1) - 1;
+					ret = (val[0] * 12) + val[1];
+				}
+				return ret;
+			},
+			numberToString: function(num){
+				var mod;
+				var ret = false;
+				if(isNumber(num)){
+					mod = (num % 12);
+					num = ((num - mod) / 12) + 1970;
+					mod += 1;
+					if(mod < 1){
+						num -= 1;
+						mod += 12;
+					}
+					ret = addleadingZero(num, 4)+'-'+addleadingZero(mod, 2);
+					
+				}
+				
+				return ret;
+			},
+			dateToString: function(date){
+				if(date && date.getUTCHours){
+					var str = typeProtos.date.dateToString(date);
+					return (str.split && (str = str.split(/\u002D/))) ? str[0]+'-'+str[1] : false;
+				} else {
+					return false;
+				}
+			}
+		}
+		,'datetime-local': {
+			bad: function(val, _getParsed){
+				if(!val || !val.split || (val+'special').split(/\u0054/).length !== 2){return true;}
+				val = val.split(/\u0054/);
+				return ( typeProtos.date.bad(val[0]) || typeProtos.time.bad(val[1], _getParsed) );
+			},
+			noAsDate: true,
+			asDate: function(val){
+				val = new Date(this.asNumber(val));
+				
+				return (isNaN(val)) ? null : val;
+			},
+			asNumber: function(val){
+				var ret = nan;
+				var time = this.bad(val, true);
+				if(time !== true){
+					val = val.split(/\u0054/)[0].split(/\u002D/);
+					
+					ret = Date.UTC(val[0], val[1] - 1, val[2], time[0][0], time[0][1], time[0][2] || 0);
+					if(time[1]){
+						ret += time[1];
+					}
+				}
+				return ret;
+			},
+			dateToString: function(date, _getParsed){
+				return typeProtos.date.dateToString(date) +'T'+ typeProtos.time.dateToString(date, _getParsed);
+			}
+		}
 	};
 	
-	if(typeBugs || !supportsType('range') || !supportsType('time')){
+	if(typeBugs || !supportsType('range') || !supportsType('time') || !supportsType('month') || !supportsType('datetime-local')){
 		typeProtos.range = $.extend({}, typeProtos.number, typeProtos.range);
-//		typeProtos.time = $.extend({}, typeProtos.date, typeProtos.time);
-//		typeProtos['datetime-local'] = $.extend({}, typeProtos.date, typeProtos.time, typeProtos['datetime-local']);
+		typeProtos.time = $.extend({}, typeProtos.date, typeProtos.time);
+		typeProtos.month = $.extend({}, typeProtos.date, typeProtos.month);
+		typeProtos['datetime-local'] = $.extend({}, typeProtos.date, typeProtos.time, typeProtos['datetime-local']);
 	}
 	
-	if(typeBugs || !supportsType('number')){
-		webshims.addInputType('number', typeProtos.number);
+	//
+	['number', 'month', 'range', 'date', 'time', 'color', 'datetime-local'].forEach(function(type){
+		if(typeBugs || !supportsType(type)){
+			webshims.addInputType(type, typeProtos[type]);
+		}
+	});
+	
+	if($('<input />').prop('labels') == null){
+		webshims.defineNodeNamesProperty('button, input, keygen, meter, output, progress, select, textarea', 'labels', {
+			prop: {
+				get: function(){
+					if(this.type == 'hidden'){return null;}
+					var id = this.id;
+					var labels = $(this)
+						.closest('label')
+						.filter(function(){
+							var hFor = (this.attributes['for'] || {});
+							return (!hFor.specified || hFor.value == id);
+						})
+					;
+					
+					if(id) {
+						labels = labels.add('label[for="'+ id +'"]');
+					}
+					return labels.get();
+				},
+				writeable: false
+			}
+		});
 	}
 	
-	if(typeBugs || !supportsType('range')){
-		webshims.addInputType('range', typeProtos.range);
-	}
-	if(typeBugs || !supportsType('date')){
-		webshims.addInputType('date', typeProtos.date);
-	}
-//	if(typeBugs || !supportsType('time')){
-//		webshims.addInputType('time', typeProtos.time);
-//	}
-
-//	if(typeBugs || !supportsType('datetime-local')){
-//		webshims.addInputType('datetime-local', typeProtos['datetime-local']);
-//	}
-		
 });

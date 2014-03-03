@@ -56,8 +56,8 @@ PUT PRODUCTION OR DEFAULT CODE HERE
 
 <!--- Her registrerer vi css i henhold til resultatet av sjekkene --->
 <cfif application.idlform.bIdlFormAlias>
-	<skin:registerCSS id="uniformCSS" baseHREF="/idlform/css/uniform" lfiles="uniform.default.css" />
-	<skin:registerCSS id="uniformTheme" baseHREF="/idlform/css/uniform" lfiles="uniform.aristo.css" />
+	<skin:registerCSS id="uniformCSS" baseHREF="/idlform/css/uniform/themes/_base/css/" lfiles="uniform._base.css" />
+	<skin:registerCSS id="uniformTheme" baseHREF="/idlform/css/uniform/themes/default/css/" lfiles="uniform.default.css" />
 	<skin:registerJS id="uniformJS" baseHREF="/idlform/js/uniform" lfiles="jquery.uniform.min.js" />
 	<skin:registerJS id="modernizrJS" baseHREF="/idlform/js/js-webshim/dev/extras" lfiles="modernizr-custom.js" />
 	<skin:registerJS id="webshimJS" baseHREF="/idlform/js/js-webshim/dev" lfiles="polyfiller.js" />

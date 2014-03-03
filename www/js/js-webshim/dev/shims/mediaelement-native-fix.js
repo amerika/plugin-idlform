@@ -1,4 +1,4 @@
-jQuery.webshims.register('mediaelement-native-fix', function($, webshims, window, document, undefined){
+webshims.register('mediaelement-native-fix', function($, webshims, window, document, undefined){
 	if(Modernizr.videoBuffered){return;}
 	
 	var getBufferedData = function(elem){
@@ -91,9 +91,10 @@ jQuery.webshims.register('mediaelement-native-fix', function($, webshims, window
 	webshims.addReady(function(context, insertedElement){
 		$('video, audio', context)
 			.add(insertedElement.filter('video, audio'))
-			.bind('load progress', loadProgessListener)
-			.bind('emptied', removeProgress)
+			.on('load progress', loadProgessListener)
+			.on('emptied', removeProgress)
 		;
+		
 	 });
 
 });

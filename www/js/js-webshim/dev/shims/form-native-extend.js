@@ -1,52 +1,62 @@
-jQuery.webshims.register('form-extend', function($, webshims, window, doc, undefined, options){
+webshims.register('form-native-extend', function($, webshims, window, doc, undefined, options){
 	"use strict";
 	var Modernizr = window.Modernizr;
 	var modernizrInputTypes = Modernizr.inputtypes;
 	if(!Modernizr.formvalidation || webshims.bugs.bustedValidity){return;}
 	var typeModels = webshims.inputTypes;
+	var runTest = false;
 	var validityRules = {};
-	
+	var updateValidity = (function(){
+		var timer;
+		var getValidity = function(){
+			$(this).prop('validity');
+		};
+		var update = function(){
+			$('input').each(getValidity);
+		};
+		return function(){
+			clearTimeout(timer);
+			timer = setTimeout(update, 9);
+		};
+	})();
 	webshims.addInputType = function(type, obj){
 		typeModels[type] = obj;
+		runTest = true;
+		//update validity of all implemented input types
+		if($.isDOMReady && Modernizr.formvalidation && !webshims.bugs.bustedValidity){
+			updateValidity();
+		}
 	};
 	
 	webshims.addValidityRule = function(type, fn){
 		validityRules[type] = fn;
 	};
 	
-	webshims.addValidityRule('typeMismatch',function (input, val, cache, validityState){
-		if(val === ''){return false;}
-		var ret = validityState.typeMismatch;
-		if(!('type' in cache)){
-			cache.type = (input[0].getAttribute('type') || '').toLowerCase();
-		}
-		
-		if(typeModels[cache.type] && typeModels[cache.type].mismatch){
-			ret = typeModels[cache.type].mismatch(val, input);
-		}
-		return ret;
+	$.each({typeMismatch: 'mismatch', badInput: 'bad'}, function(name, fn){
+		webshims.addValidityRule(name, function (input, val, cache, validityState){
+			if(val === ''){return false;}
+			var ret = validityState[name];
+			if(!('type' in cache)){
+				cache.type = (input[0].getAttribute('type') || '').toLowerCase();
+			}
+			
+			if(typeModels[cache.type] && typeModels[cache.type][fn]){
+				ret = typeModels[cache.type][fn](val, input);
+			}
+			return ret || false;
+		});
 	});
 	
-	var overrideNativeMessages = options.overrideMessages;	
+	var formsExtModule = webshims.modules['form-number-date-api'];
+	var overrideValidity = formsExtModule.loaded && !formsExtModule.test();
+	var validityProps = ['customError', 'badInput','typeMismatch','rangeUnderflow','rangeOverflow','stepMismatch','tooLong', 'tooShort','patternMismatch','valueMissing','valid'];
 	
-	var overrideValidity = (!modernizrInputTypes.number || !modernizrInputTypes.time || !modernizrInputTypes.range || overrideNativeMessages);
-	var validityProps = ['customError','typeMismatch','rangeUnderflow','rangeOverflow','stepMismatch','tooLong','patternMismatch','valueMissing','valid'];
-	
-	var validityChanger = (overrideNativeMessages)? ['value', 'checked'] : ['value'];
+	var validityChanger = ['value'];
 	var validityElements = [];
 	var testValidity = function(elem, init){
-		if(!elem){return;}
+		if(!elem && !runTest){return;}
 		var type = (elem.getAttribute && elem.getAttribute('type') || elem.type || '').toLowerCase();
-		
-		if(!overrideNativeMessages && !typeModels[type]){
-			return;
-		}
-		
-		if(overrideNativeMessages && !init && type == 'radio' && elem.name){
-			$(doc.getElementsByName( elem.name )).each(function(){
-				$.prop(this, 'validity');
-			});
-		} else {
+		if(typeModels[type]){
 			$.prop(elem, 'validity');
 		}
 	};
@@ -60,9 +70,7 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 					var elem = (name == 'input') ? $(this).getNativeElement()[0] : this;
 					desc.prop._supvalue.call(elem, error);
 					
-					if(webshims.bugs.validationMessage){
-						webshims.data(elem, 'customvalidationMessage', error);
-					}
+					
 					if(overrideValidity){
 						webshims.data(elem, 'hasCustomError', !!(error));
 						testValidity(elem);
@@ -74,18 +82,13 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 	});
 		
 	
-	if(overrideValidity || overrideNativeMessages){
+	if(overrideValidity){
 		validityChanger.push('min');
 		validityChanger.push('max');
 		validityChanger.push('step');
 		validityElements.push('input');
 	}
-	if(overrideNativeMessages){
-		validityChanger.push('required');
-		validityChanger.push('pattern');
-		validityElements.push('select');
-		validityElements.push('textarea');
-	}
+	
 	
 	if(overrideValidity){
 		var stopValidity;
@@ -104,7 +107,7 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 						}
 						var validityState = {};
 						validityProps.forEach(function(prop){
-							validityState[prop] = validity[prop];
+							validityState[prop] = validity[prop] || false;
 						});
 						
 						if( !$.prop(elem, 'willValidate') ){
@@ -112,7 +115,7 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 						}
 						stopValidity = true;
 						var jElm 			= $(elem),
-							cache 			= {type: (elem.getAttribute && elem.getAttribute('type') || '').toLowerCase(), nodeName: (elem.nodeName || '').toLowerCase()},
+							cache 			= {type: (elem.getAttribute && elem.getAttribute('type') || elem.type || '').toLowerCase(), nodeName: (elem.nodeName || '').toLowerCase()},
 							val				= jElm.val(),
 							customError 	= !!(webshims.data(elem, 'hasCustomError')),
 							setCustomMessage
@@ -139,7 +142,7 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 						
 						$.each(validityRules, function(rule, fn){
 							validityState[rule] = fn(jElm, val, cache, validityState);
-							if( validityState[rule] && (validityState.valid || !setCustomMessage) && (overrideNativeMessages || (typeModels[cache.type] && typeModels[cache.type].mismatch)) ) {
+							if( validityState[rule] && (validityState.valid || !setCustomMessage) && ((typeModels[cache.type])) ) {
 								oldSetCustomValidity[nodeName].call(elem, webshims.createValidationMessage(elem, rule));
 								validityState.valid = false;
 								setCustomMessage = true;
@@ -148,13 +151,6 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 						if(validityState.valid){
 							oldSetCustomValidity[nodeName].call(elem, '');
 							webshims.data(elem, 'hasCustomError', false);
-						} else if(overrideNativeMessages && !setCustomMessage && !customError){
-							$.each(validityState, function(name, prop){
-								if(name !== 'valid' && prop){
-									oldSetCustomValidity[nodeName].call(elem, webshims.createValidationMessage(elem, name));
-									return false;
-								}
-							});
 						}
 						return validityState;
 					},
@@ -174,27 +170,12 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 			var inputThrottle;
 			var testPassValidity = function(e){
 				if(!('form' in e.target)){return;}
-				var form = e.target.form;
 				clearTimeout(inputThrottle);
 				testValidity(e.target);
-				if(form && overrideNativeMessages){
-					$('input', form).each(function(){
-						if(this.type == 'password'){
-							testValidity(this);
-						}
-					});
-				}
 			};
 			
 			doc.addEventListener('change', testPassValidity, true);
 			
-			if(overrideNativeMessages){
-				doc.addEventListener('blur', testPassValidity, true);
-				doc.addEventListener('keydown', function(e){
-					if(e.keyCode != 13){return;}
-					testPassValidity(e);
-				}, true);
-			}
 			
 			doc.addEventListener('input', function(e){
 				clearTimeout(inputThrottle);
@@ -207,38 +188,13 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 		var validityElementsSel = validityElements.join(',');	
 		
 		webshims.addReady(function(context, elem){
-			$(validityElementsSel, context).add(elem.filter(validityElementsSel)).each(function(){
-				$.prop(this, 'validity');
-			});
+			if(runTest){
+				$(validityElementsSel, context).add(elem.filter(validityElementsSel)).each(function(){
+					testValidity(this);
+				});
+			}
 		});
 		
-		
-		if(overrideNativeMessages){
-			webshims.ready('DOM form-message', function(){
-				webshims.activeLang({
-					register: 'form-core',
-					callback: function(){
-						$('input, select, textarea')
-							.getNativeElement()
-							.each(function(){
-								if(webshims.data(this, 'hasCustomError')){return;}
-								var elem = this;
-								var validity = $.prop(elem, 'validity') || {valid: true};
-								var nodeName;
-								if(validity.valid){return;}
-								nodeName = (elem.nodeName || '').toLowerCase();
-								$.each(validity, function(name, prop){
-									if(name !== 'valid' && prop){
-										oldSetCustomValidity[nodeName].call(elem, webshims.createValidationMessage(elem, name));
-										return false;
-									}
-								});
-							})
-						;
-					}
-				});
-			});
-		}
 		
 	} //end: overrideValidity
 	
@@ -246,7 +202,7 @@ jQuery.webshims.register('form-extend', function($, webshims, window, doc, undef
 		prop: {
 			get: function(){
 				var elem = this;
-				var type = (elem.getAttribute('type') || '').toLowerCase();
+				var type = (elem.getAttribute && elem.getAttribute('type') || '').toLowerCase();
 				return (webshims.inputTypes[type]) ? type : elem.type;
 			}
 		}

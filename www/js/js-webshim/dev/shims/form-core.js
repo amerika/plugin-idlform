@@ -1,22 +1,7 @@
-//additional tests for partial implementation of forms features
-(function($){
-	var Modernizr = window.Modernizr;
-	var webshims = $.webshims;
-	var bugs = webshims.bugs;
-	var form = $('<form action="#" style="width: 1px; height: 1px; overflow: hidden;"><select name="b" required="" /><input type="date" required="" name="a" /><input type="submit" /></form>');
-	var testRequiredFind = function(){
-		if(form[0].querySelector){
-			try {
-				bugs.findRequired = !(form[0].querySelector('select:required'));
-			} catch(er){
-				bugs.findRequired = false;
-			}
-		}
-	};
-	bugs.findRequired = false;
-	bugs.validationMessage = false;
-	bugs.valueAsNumberSet = false;
-	
+
+webshims.register('form-core', function($, webshims, window, document, undefined, options){
+	"use strict";
+
 	webshims.capturingEventPrevented = function(e){
 		if(!e._isPolyfilled){
 			var isDefaultPrevented = e.isDefaultPrevented;
@@ -35,200 +20,194 @@
 		}
 	};
 	
-	if(!Modernizr.formvalidation || bugs.bustedValidity){
-		testRequiredFind();
-		return;
+	if(Modernizr.formvalidation && !webshims.bugs.bustedValidity){
+		//create delegatable events
+		webshims.capturingEvents(['invalid'], true);
 	}
-	
-	//create delegatable events
-	webshims.capturingEvents(['input']);
-	webshims.capturingEvents(['invalid'], true);
-	
-	Modernizr.bugfreeformvalidation = true;
-	if(window.opera || $.browser.webkit || window.testGoodWithFix){
-		var dateElem = $('input', form).eq(0);
-		var timer;
-		var onDomextend = function(fn){
-			webshims.loader.loadList(['dom-extend']);
-			webshims.ready('dom-extend', fn);
-		};
-		var loadFormFixes = function(e){
-			var reTest = ['form-extend', 'form-message', 'form-native-fix'];
-			if(e){
-				e.preventDefault();
-				e.stopImmediatePropagation();
-			}
-			clearTimeout(timer);
-			setTimeout(function(){
-				if(!form){return;}
-				form.remove();
-				form = dateElem = null;
-			}, 9);
-			if(!Modernizr.bugfreeformvalidation){
-				webshims.addPolyfill('form-native-fix', {
-					f: 'forms',
-					d: ['form-extend']
-				});
-				//remove form-extend readyness
-				webshims.modules['form-extend'].test = $.noop;
-			} 
-			
-			if(webshims.isReady('form-number-date-api')){
-				reTest.push('form-number-date-api');
-			}
-			
-			webshims.reTest(reTest);
-			
-			if(dateElem){
-				try {
-					if(dateElem.prop({disabled: true, value: ''}).prop('disabled', false).is(':valid')){
-						onDomextend(function(){
-							webshims.onNodeNamesPropertyModify(['input', 'textarea'], ['disabled', 'readonly'], {
-								set: function(val){
-									var elem = this;
-									if(!val && elem){
-										$.prop(elem, 'value', $.prop(elem, 'value'));
-									}
-								}
-							});
-							webshims.onNodeNamesPropertyModify(['select'], ['disabled', 'readonly'], {
-								set: function(val){
-									var elem = this;
-									if(!val && elem){
-										val = $(elem).val();
-										($('option:last-child', elem)[0] || {}).selected = true;
-										$(elem).val( val );
-									}
-								}
-							});
-						});
-					}
-				} catch(er){}
-			}
-			
-			if ($.browser.opera || window.testGoodWithFix) {
-				onDomextend(function(){
-					
-					//Opera shows native validation bubbles in case of input.checkValidity()
-					// Opera 11.6/12 hasn't fixed this issue right, it's buggy
-					var preventDefault = function(e){
-						e.preventDefault();
-					};
-					
-					['form', 'input', 'textarea', 'select'].forEach(function(name){
-						var desc = webshims.defineNodeNameProperty(name, 'checkValidity', {
-							prop: {
-								value: function(){
-									if (!webshims.fromSubmit) {
-										$(this).bind('invalid.checkvalidity', preventDefault);
-									}
-									
-									webshims.fromCheckValidity = true;
-									var ret = desc.prop._supvalue.apply(this, arguments);
-									if (!webshims.fromSubmit) {
-										$(this).unbind('invalid.checkvalidity', preventDefault);
-									}
-									webshims.fromCheckValidity = false;
-									return ret;
-								}
-							}
-						});
-					});
-					
-				});
-			}
-		};
-		
-		form.appendTo('head');
-		if(window.opera || window.testGoodWithFix) {
-			testRequiredFind();
-			bugs.validationMessage = !(dateElem.prop('validationMessage'));
-			if((Modernizr.inputtypes || {}).date){
-				try {
-					dateElem.prop('valueAsNumber', 0);
-				} catch(er){}
-				bugs.valueAsNumberSet = (dateElem.prop('value') != '1970-01-01');
-			}
-			dateElem.prop('value', '');
+
+	var isValid = function(elem){
+		return ($.prop(elem, 'validity') || {valid: 1}).valid;
+	};
+	var lazyLoad = function(){
+		var toLoad = ['form-validation'];
+		if(options.lazyCustomMessages){
+			options.customMessages = true;
+			toLoad.push('form-message');
 		}
-		
-		form.bind('submit', function(e){
-			Modernizr.bugfreeformvalidation = false;
-			loadFormFixes(e);
+		if(options.customDatalist){
+			options.fD = true;
+			toLoad.push('form-datalist');
+		}
+		if(options.addValidators){
+			toLoad.push('form-validators');
+		}
+		webshims.reTest(toLoad);
+		$(document).off('.lazyloadvalidation');
+	};
+	/*
+	 * Selectors for all browsers
+	 */
+	var rElementsGroup = /^(?:form|fieldset)$/i;
+	var hasInvalid = function(elem){
+		var ret = false;
+		$(elem).jProp('elements').each(function(){
+			if(!rElementsGroup.test(elem.nodeName || '')){
+				ret = $(this).is(':invalid');
+				if(ret){
+					return false;
+				}
+			}
+			
 		});
-		
-		timer = setTimeout(function(){
-			if (form) {
-				form.triggerHandler('submit');
-			}
-		}, 9);
-		
-		$('input, select', form).bind('invalid', loadFormFixes)
-			.filter('[type="submit"]')
-			.bind('click', function(e){
-				e.stopImmediatePropagation();
-			})
-			.trigger('click')
-		;
-		
-		if($.browser.webkit && Modernizr.bugfreeformvalidation && !webshims.bugs.bustedValidity){
-			(function(){
-				var elems = /^(?:textarea|input)$/i;
-				var form = false;
-
-				document.addEventListener('contextmenu', function(e){
-					if(elems.test( e.target.nodeName || '') && (form = e.target.form)){
-						setTimeout(function(){
-							form = false;
-						}, 1);
-					}
-				}, false);
-				
-				$(window).bind('invalid', function(e){
-					if(e.originalEvent && form && form == e.target.form){
-						e.wrongWebkitInvalid = true;
-						e.stopImmediatePropagation();
-					}
-				});
-			})();
-		}
-	}
-	
-})(jQuery);
-
-jQuery.webshims.register('form-core', function($, webshims, window, document, undefined, options){
-	"use strict";
-	
-	var groupTypes = {radio: 1};
-	var checkTypes = {checkbox: 1, radio: 1};
-	var emptyJ = $([]);
-	var bugs = webshims.bugs;
-	var getGroupElements = function(elem){
-		elem = $(elem);
-		var name;
-		var form;
-		var ret = emptyJ;
-		if(groupTypes[elem[0].type]){
-			form = elem.prop('form');
-			name = elem[0].name;
-			if(!name){
-				ret = elem;
-			} else if(form){
-				ret = $(form[name]);
-			} else {
-				ret = $(document.getElementsByName(name)).filter(function(){
-					return !$.prop(this, 'form');
-				});
-			}
-			ret = ret.filter('[type="radio"]');
-		}
 		return ret;
 	};
 	
-	var getContentValidationMessage = webshims.getContentValidationMessage = function(elem, validity, key){
-		var message = $(elem).data('errormessage') || elem.getAttribute('x-moz-errormessage') || '';
+	var extendSels = function(){
+		var matches, matchesOverride;
+		var exp = $.expr[":"];
+		$.extend(exp, {
+			"valid-element": function(elem){
+				return rElementsGroup.test(elem.nodeName || '') ? !hasInvalid(elem) :!!($.prop(elem, 'willValidate') && isValid(elem));
+			},
+			"invalid-element": function(elem){
+				return rElementsGroup.test(elem.nodeName || '') ? hasInvalid(elem) : !!($.prop(elem, 'willValidate') && !isValid(elem));
+			},
+			"required-element": function(elem){
+				return !!($.prop(elem, 'willValidate') && $.prop(elem, 'required'));
+			},
+			"user-error": function(elem){
+				return ($.prop(elem, 'willValidate') && $(elem).hasClass('user-error'));
+			},
+			"optional-element": function(elem){
+				return !!($.prop(elem, 'willValidate') && $.prop(elem, 'required') === false);
+			}
+		});
+		
+		['valid', 'invalid', 'required', 'optional'].forEach(function(name){
+			exp[name] = $.expr[":"][name+"-element"];
+		});
+		
+		// sizzle/jQuery has a bug with :disabled/:enabled selectors
+		if(Modernizr.fieldsetdisabled && !$('<fieldset disabled=""><input /><input /></fieldset>').find(':disabled').filter(':disabled').is(':disabled')){
+			matches = $.find.matches;
+			matchesOverride = {':disabled': 1, ':enabled': 1};
+			$.find.matches = function(expr, elements){
+				if(matchesOverride[expr]){
+					return matches.call(this, '*'+expr, elements);
+				}
+				return matches.apply(this, arguments);
+			};
+			$.extend(exp, {
+				"enabled": function( elem ) {
+					return elem.disabled === false && !$(elem).is('fieldset[disabled] *');
+				},
+		
+				"disabled": function( elem ) {
+					return elem.disabled === true || ('disabled' in elem && $(elem).is('fieldset[disabled] *'));
+				}
+			});
+		}
+		
+		
+		//bug was partially fixed in 1.10.0 for IE9, but not IE8 (move to es5 as soon as 1.10.2 is used)
+		if(typeof document.activeElement == 'unknown'){
+			var pseudoFocus = exp.focus;
+			exp.focus = function(){
+				try {
+					return pseudoFocus.apply(this, arguments);
+				} catch(e){
+					webshims.error(e);
+				}
+				return false;
+			};
+		}
+	};
+	
+	if($.expr.filters){
+		extendSels();
+	} else {
+		webshims.ready('sizzle', extendSels);
+	}
+	
+	
+	webshims.triggerInlineForm = function(elem, event){
+		$(elem).trigger(event);
+	};
+	
+	var lazyLoadProxy = function(obj, fn, args){
+		lazyLoad();
+		webshims.ready('form-validation', function(){
+			obj[fn].apply(obj, args);
+		});
+	};
+	
+	var transClass = ('transitionDelay' in document.documentElement.style) ?  '' : ' no-transition';
+	var poCFG = webshims.cfg.wspopover;
+	if(!poCFG.position && poCFG.position !== false){
+		poCFG.position = {
+			at: 'left bottom',
+			my: 'left top',
+			collision: 'fit flip'
+		};
+	}
+	webshims.wsPopover = {
+		id: 0,
+		_create: function(){
+			this.options = $.extend(true, {}, poCFG, this.options);
+			this.id = webshims.wsPopover.id++;
+			this.eventns = '.wsoverlay' + this.id;
+			this.timers = {};
+			this.element = $('<div class="ws-popover'+transClass+'" tabindex="-1"><div class="ws-po-outerbox"><div class="ws-po-arrow"><div class="ws-po-arrowbox" /></div><div class="ws-po-box" /></div></div>');
+			this.contentElement = $('.ws-po-box', this.element);
+			this.lastElement = $([]);
+			this.bindElement();
+			
+			this.element.data('wspopover', this);
+			
+		},
+		options: {},
+		content: function(html){
+			this.contentElement.html(html);
+		},
+		bindElement: function(){
+			var that = this;
+			var stopBlur = function(){
+				that.stopBlur = false;
+			};
+			this.preventBlur = function(e){
+				that.stopBlur = true;
+				clearTimeout(that.timers.stopBlur);
+				that.timers.stopBlur = setTimeout(stopBlur, 9);
+			};
+			this.element.on({
+				'mousedown': this.preventBlur
+			});
+		},
+		show: function(){
+			lazyLoadProxy(this, 'show', arguments);
+		}
+	};
+	
+	/* some extra validation UI */
+	webshims.validityAlert = {
+		showFor: function(){
+			lazyLoadProxy(this, 'showFor', arguments);
+		}
+	};
+	
+	
+	webshims.getContentValidationMessage = function(elem, validity, key){
+		if(webshims.errorbox && webshims.errorbox.initIvalContentMessage){
+			webshims.errorbox.initIvalContentMessage(elem);
+		}
+		var message = (webshims.getOptions && webshims.errorbox ? webshims.getOptions(elem, 'errormessage', false, true) : $(elem).data('errormessage')) || elem.getAttribute('x-moz-errormessage') || '';
 		if(key && message[key]){
 			message = message[key];
+		} else if(message) {
+			validity = validity || $.prop(elem, 'validity') || {valid: 1};
+			if(validity.valid){
+				message = '';
+			}
 		}
 		if(typeof message == 'object'){
 			validity = validity || $.prop(elem, 'validity') || {valid: 1};
@@ -239,422 +218,40 @@ jQuery.webshims.register('form-core', function($, webshims, window, document, un
 						return false;
 					}
 				});
+				if(typeof message == 'object'){
+					if(validity.typeMismatch && message.badInput){
+						message = message.badInput;
+					}
+					if(validity.badInput && message.typeMismatch){
+						message = message.typeMismatch;
+					}
+				}
 			}
 		}
 		
 		if(typeof message == 'object'){
 			message = message.defaultMessage;
 		}
+		if(webshims.replaceValidationplaceholder){
+			message = webshims.replaceValidationplaceholder(elem, message);
+		}
 		return message || '';
 	};
 	
-	/*
-	 * Selectors for all browsers
-	 */
-	var rangeTypes = {number: 1, range: 1, date: 1/*, time: 1, 'datetime-local': 1, datetime: 1, month: 1, week: 1*/};
-	$.extend($.expr[":"], {
-		"valid-element": function(elem){
-			return !!($.prop(elem, 'willValidate') && ($.prop(elem, 'validity') || {valid: 1}).valid);
-		},
-		"invalid-element": function(elem){
-			return !!($.prop(elem, 'willValidate') && !isValid(elem));
-		},
-		"required-element": function(elem){
-			return !!($.prop(elem, 'willValidate') && $.prop(elem, 'required'));
-		},
-		"optional-element": function(elem){
-			return !!($.prop(elem, 'willValidate') && $.prop(elem, 'required') === false);
-		},
-		"in-range": function(elem){
-			if(!rangeTypes[$.prop(elem, 'type')] || !$.prop(elem, 'willValidate')){
-				return false;
-			}
-			var val = $.prop(elem, 'validity');
-			return !!(val && !val.rangeOverflow && !val.rangeUnderflow);
-		},
-		"out-of-range": function(elem){
-			if(!rangeTypes[$.prop(elem, 'type')] || !$.prop(elem, 'willValidate')){
-				return false;
-			}
-			var val = $.prop(elem, 'validity');
-			return !!(val && (val.rangeOverflow || val.rangeUnderflow));
-		}
-		
-	});
-	
-	['valid', 'invalid', 'required', 'optional'].forEach(function(name){
-		$.expr[":"][name] = $.expr.filters[name+"-element"];
-	});
-	
-	
-	$.expr[":"].focus = function( elem ) {
-		try {
-			var doc = elem.ownerDocument;
-			return elem === doc.activeElement && (!doc.hasFocus || doc.hasFocus());
-		} catch(e){}
-		return false;
-	};
-	
-	var customEvents = $.event.customEvent || {};
-	var isValid = function(elem){
-		return ($.prop(elem, 'validity') || {valid: 1}).valid;
-	};
-	
-	if (bugs.bustedValidity || bugs.findRequired || !Modernizr.bugfreeformvalidation) {
-		(function(){
-			var find = $.find;
-			var matchesSelector = $.find.matchesSelector;
-			
-			var regExp = /(\:valid|\:invalid|\:optional|\:required|\:in-range|\:out-of-range)(?=[\s\[\~\.\+\>\:\#*]|$)/ig;
-			var regFn = function(sel){
-				return sel + '-element';
-			};
-			
-			$.find = (function(){
-				var slice = Array.prototype.slice;
-				var fn = function(sel){
-					var ar = arguments;
-					ar = slice.call(ar, 1, ar.length);
-					ar.unshift(sel.replace(regExp, regFn));
-					return find.apply(this, ar);
-				};
-				for (var i in find) {
-					if(find.hasOwnProperty(i)){
-						fn[i] = find[i];
-					}
-				}
-				return fn;
-			})();
-			if(!Modernizr.prefixed || Modernizr.prefixed("matchesSelector", document.documentElement)){
-				$.find.matchesSelector = function(node, expr){
-					expr = expr.replace(regExp, regFn);
-					return matchesSelector.call(this, node, expr);
-				};
-			}
-			
-		})();
-	}
-	
-	//ToDo needs testing
-	var oldAttr = $.prop;
-	var changeVals = {selectedIndex: 1, value: 1, checked: 1, disabled: 1, readonly: 1};
-	$.prop = function(elem, name, val){
-		var ret = oldAttr.apply(this, arguments);
-		if(elem && 'form' in elem && changeVals[name] && val !== undefined && $(elem).hasClass('form-ui-invalid')){
-			if(isValid(elem)){
-				$(elem).getShadowElement().removeClass('form-ui-invalid');
-				if(name == 'checked' && val) {
-					getGroupElements(elem).not(elem).removeClass('form-ui-invalid').removeAttr('aria-invalid');
-				}
-			}
-		}
-		return ret;
-	};
-	
-	var returnValidityCause = function(validity, elem){
-		var ret;
-		$.each(validity, function(name, value){
-			if(value){
-				ret = (name == 'customError') ? $.prop(elem, 'validationMessage') : name;
-				return false;
-			}
-		});
-		return ret;
-	};
-	
-	var switchValidityClass = function(e){
-		var elem, timer;
-		if(!e.target){return;}
-		elem = $(e.target).getNativeElement()[0];
-		if(elem.type == 'submit' || !$.prop(elem, 'willValidate') || (e.type == 'focusout' && e.type == 'radio')){return;}
-		timer = $.data(elem, 'webshimsswitchvalidityclass');
-		var switchClass = function(){
-			var validity = $.prop(elem, 'validity');
-			var shadowElem = $(elem).getShadowElement();
-			var addClass, removeClass, trigger, generaltrigger, validityCause;
-			
-			$(elem).trigger('refreshCustomValidityRules');
-			if(validity.valid){
-				if(!shadowElem.hasClass('form-ui-valid')){
-					addClass = 'form-ui-valid';
-					removeClass = 'form-ui-invalid';
-					generaltrigger = 'changedvaliditystate';
-					trigger = 'changedvalid';
-					if(checkTypes[elem.type] && elem.checked){
-						getGroupElements(elem).not(elem).removeClass(removeClass).addClass(addClass).removeAttr('aria-invalid');
-					}
-					$.removeData(elem, 'webshimsinvalidcause');
-				}
-			} else {
-				validityCause = returnValidityCause(validity, elem);
-				if($.data(elem, 'webshimsinvalidcause') != validityCause){
-					$.data(elem, 'webshimsinvalidcause', validityCause);
-					generaltrigger = 'changedvaliditystate';
-				}
-				if(!shadowElem.hasClass('form-ui-invalid')){
-					addClass = 'form-ui-invalid';
-					removeClass = 'form-ui-valid';
-					if (checkTypes[elem.type] && !elem.checked) {
-						getGroupElements(elem).not(elem).removeClass(removeClass).addClass(addClass);
-					}
-					trigger = 'changedinvalid';
-				}
-			}
-			if(addClass){
-				shadowElem.addClass(addClass).removeClass(removeClass);
-				//jQuery 1.6.1 IE9 bug (doubble trigger bug)
-				setTimeout(function(){
-					$(elem).trigger(trigger);
-				}, 0);
-			}
-			if(generaltrigger){
-				setTimeout(function(){
-					$(elem).trigger(generaltrigger);
-				}, 0);
-			}
-			$.removeData(e.target, 'webshimsswitchvalidityclass');
-			
-		};
-		if(timer){
-			clearTimeout(timer);
-		}
-		if(e.type == 'refreshvalidityui'){
-			switchClass();
-		} else {
-			$.data(e.target, 'webshimsswitchvalidityclass', setTimeout(switchClass, 9));
-		}
-	};
-	
-	$(document).bind(options.validityUIEvents || 'focusout change refreshvalidityui', switchValidityClass);
-	customEvents.changedvaliditystate = true;
-	customEvents.refreshCustomValidityRules = true;
-	customEvents.changedvalid = true;
-	customEvents.changedinvalid = true;
-	customEvents.refreshvalidityui = true;
-	
-	
-	webshims.triggerInlineForm = function(elem, event){
-		$(elem).trigger(event);
-	};
-	
-	webshims.modules["form-core"].getGroupElements = getGroupElements;
-	
-	
-	var setRoot = function(){
-		webshims.scrollRoot = ($.browser.webkit || document.compatMode == 'BackCompat') ?
-			$(document.body) : 
-			$(document.documentElement)
-		;
-	};
-	setRoot();
-	webshims.ready('DOM', setRoot);
-	
-	webshims.getRelOffset = function(posElem, relElem){
-		posElem = $(posElem);
-		var offset = $(relElem).offset();
-		var bodyOffset;
-		$.swap($(posElem)[0], {visibility: 'hidden', display: 'inline-block', left: 0, top: 0}, function(){
-			bodyOffset = posElem.offset();
-		});
-		offset.top -= bodyOffset.top;
-		offset.left -= bodyOffset.left;
-		return offset;
-	};
-	
-	/* some extra validation UI */
-	webshims.validityAlert = (function(){
-		var alertElem = (!$.browser.msie || parseInt($.browser.version, 10) > 7) ? 'span' : 'label';
-		var errorBubble;
-		var hideTimer = false;
-		var focusTimer = false;
-		var resizeTimer = false;
-		var boundHide;
-		
-		var api = {
-			hideDelay: 5000,
-			
-			showFor: function(elem, message, noFocusElem, noBubble){
-				api._create();
-				elem = $(elem);
-				var visual = $(elem).getShadowElement();
-				var offset = api.getOffsetFromBody(visual);
-				api.clear();
-				if(noBubble){
-					this.hide();
-				} else {
-					this.getMessage(elem, message);
-					this.position(visual, offset);
-					
-					this.show();
-					if(this.hideDelay){
-						hideTimer = setTimeout(boundHide, this.hideDelay);
-					}
-					$(window)
-						.bind('resize.validityalert', function(){
-							clearTimeout(resizeTimer);
-							resizeTimer = setTimeout(function(){
-								api.position(visual);
-							}, 9);
-						})
-					;
-				}
-				
-				if(!noFocusElem){
-					this.setFocus(visual, offset);
-				}
-			},
-			getOffsetFromBody: function(elem){
-				return webshims.getRelOffset(errorBubble, elem);
-			},
-			setFocus: function(visual, offset){
-				var focusElem = $(visual).getShadowFocusElement();
-				var scrollTop = webshims.scrollRoot.scrollTop();
-				var elemTop = ((offset || focusElem.offset()).top) - 30;
-				var smooth;
-				
-				if(webshims.getID && alertElem == 'label'){
-					errorBubble.attr('for', webshims.getID(focusElem));
-				}
-				
-				if(scrollTop > elemTop){
-					webshims.scrollRoot.animate(
-						{scrollTop: elemTop - 5}, 
-						{
-							queue: false, 
-							duration: Math.max( Math.min( 600, (scrollTop - elemTop) * 1.5 ), 80 )
-						}
-					);
-					smooth = true;
-				}
-				try {
-					focusElem[0].focus();
-				} catch(e){}
-				if(smooth){
-					webshims.scrollRoot.scrollTop(scrollTop);
-					setTimeout(function(){
-						webshims.scrollRoot.scrollTop(scrollTop);
-					}, 0);
-				}
-				setTimeout(function(){
-					$(document).bind('focusout.validityalert', boundHide);
-				}, 10);
-			},
-			getMessage: function(elem, message){
-				if (!message) {
-					message = getContentValidationMessage(elem[0]) || elem.prop('validationMessage');
-				}
-				if (message) {
-					$('span.va-box', errorBubble).text(message);
-				}
-				else {
-					this.hide();
-				}
-			},
-			position: function(elem, offset){
-				offset = offset ? $.extend({}, offset) : api.getOffsetFromBody(elem);
-				offset.top += elem.outerHeight();
-				errorBubble.css(offset);
-			},
-			show: function(){
-				if(errorBubble.css('display') === 'none'){
-					errorBubble.css({opacity: 0}).show();
-				}
-				errorBubble.addClass('va-visible').fadeTo(400, 1);
-			},
-			hide: function(){
-				errorBubble.removeClass('va-visible').fadeOut();
-			},
-			clear: function(){
-				clearTimeout(focusTimer);
-				clearTimeout(hideTimer);
-				$(document).unbind('.validityalert');
-				$(window).unbind('.validityalert');
-				errorBubble.stop().removeAttr('for');
-			},
-			_create: function(){
-				if(errorBubble){return;}
-				errorBubble = api.errorBubble = $('<'+alertElem+' class="validity-alert-wrapper" role="alert"><span  class="validity-alert"><span class="va-arrow"><span class="va-arrow-box"></span></span><span class="va-box"></span></span></'+alertElem+'>').css({position: 'absolute', display: 'none'});
-				webshims.ready('DOM', function(){
-					errorBubble.appendTo('body');
-					if($.fn.bgIframe && $.browser.msie && parseInt($.browser.version, 10) < 7){
-						errorBubble.bgIframe();
-					}
-				});
-			}
-		};
-		
-		
-		boundHide = $.proxy(api, 'hide');
-		
-		return api;
-	})();
-	
-	
-	/* extension, but also used to fix native implementation workaround/bugfixes */
-	(function(){
-		var firstEvent,
-			invalids = [],
-			stopSubmitTimer,
-			form
-		;
-		
-		$(document).bind('invalid', function(e){
-			if(e.wrongWebkitInvalid){return;}
-			var jElm = $(e.target);
-			var shadowElem = jElm.getShadowElement();
-			if(!shadowElem.hasClass('form-ui-invalid')){
-				shadowElem.addClass('form-ui-invalid').removeClass('form-ui-valid');
-				setTimeout(function(){
-					$(e.target).trigger('changedinvalid').trigger('changedvaliditystate');
-				}, 0);
-			}
-			
-			if(!firstEvent){
-				//trigger firstinvalid
-				firstEvent = $.Event('firstinvalid');
-				firstEvent.isInvalidUIPrevented = e.isDefaultPrevented;
-				var firstSystemInvalid = $.Event('firstinvalidsystem');
-				$(document).triggerHandler(firstSystemInvalid, {element: e.target, form: e.target.form, isInvalidUIPrevented: e.isDefaultPrevented});
-				jElm.trigger(firstEvent);
-			}
-
-			//if firstinvalid was prevented all invalids will be also prevented
-			if( firstEvent && firstEvent.isDefaultPrevented() ){
-				e.preventDefault();
-			}
-			invalids.push(e.target);
-			e.extraData = 'fix'; 
-			clearTimeout(stopSubmitTimer);
-			stopSubmitTimer = setTimeout(function(){
-				var lastEvent = {type: 'lastinvalid', cancelable: false, invalidlist: $(invalids)};
-				//reset firstinvalid
-				firstEvent = false;
-				invalids = [];
-				$(e.target).trigger(lastEvent, lastEvent);
-			}, 9);
-			jElm = null;
-			shadowElem = null;
-		});
-	})();
-	
-	$.fn.getErrorMessage = function(){
+	$.fn.getErrorMessage = function(key){
 		var message = '';
 		var elem = this[0];
 		if(elem){
-			message = getContentValidationMessage(elem) || $.prop(elem, 'customValidationMessage') || $.prop(elem, 'validationMessage');
+			message = webshims.getContentValidationMessage(elem, false, key) || $.prop(elem, 'customValidationMessage') || $.prop(elem, 'validationMessage');
 		}
 		return message;
 	};
 	
-	if(options.replaceValidationUI){
-		webshims.ready('DOM forms', function(){
-			$(document).bind('firstinvalid', function(e){
-				if(!e.isInvalidUIPrevented()){
-					e.preventDefault();
-					$.webshims.validityAlert.showFor( e.target, $(e.target).prop('customValidationMessage') ); 
-				}
-			});
-		});
-	}
 	
+	$(document).on('focusin.lazyloadvalidation', function(e){
+		if('form' in e.target){
+			lazyLoad();
+		}
+	});
+	webshims.ready('WINDOWLOAD', lazyLoad);
 });

@@ -169,3 +169,6 @@ form.idlform input[type='radio'].form-ui-invalid {
 	form.idlform fieldset.w100percent input.text,
 	form.idlform fieldset.w100percent textarea {width: 95%;}
 }
+
+/* ----------- Overrides for uniform ------------- */
+form.idlform div.button span {padding-top: 4px; padding-bottom: 4px;}

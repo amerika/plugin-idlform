@@ -1,6 +1,46 @@
 //DOM-Extension helper
-jQuery.webshims.register('dom-extend', function($, webshims, window, document, undefined){
+webshims.register('dom-extend', function($, webshims, window, document, undefined){
 	"use strict";
+	var supportHrefNormalized = !('hrefNormalized' in $.support) || $.support.hrefNormalized;
+	var supportGetSetAttribute = !('getSetAttribute' in $.support) || $.support.getSetAttribute;
+	var has = Object.prototype.hasOwnProperty;
+	webshims.assumeARIA = supportGetSetAttribute || Modernizr.canvas || Modernizr.video || Modernizr.boxsizing;
+	
+	if($('<input type="email" />').attr('type') == 'text' || $('<form />').attr('novalidate') === "" || ('required' in $('<input />')[0].attributes)){
+		webshims.error("IE browser modes are busted in IE10+. Please test your HTML/CSS/JS with a real IE version or at least IETester or similiar tools");
+	}
+	
+	if('debug' in webshims){
+		webshims.error('Use webshims.setOptions("debug", true||false||"noCombo"); to debug flag');
+	}
+	
+	if (!webshims.cfg.no$Switch) {
+		var switch$ = function(){
+			if (window.jQuery && (!window.$ || window.jQuery == window.$) && !window.jQuery.webshims) {
+				webshims.error("jQuery was included more than once. Make sure to include it only once or try the $.noConflict(extreme) feature! Webshims and other Plugins might not work properly. Or set webshims.cfg.no$Switch to 'true'.");
+				if (window.$) {
+					window.$ = webshims.$;
+				}
+				window.jQuery = webshims.$;
+			}
+			if(webshims.M != Modernizr){
+				webshims.error("Modernizr was included more than once. Make sure to include it only once! Webshims and other scripts might not work properly.");
+				for(var i in Modernizr){
+					if(!(i in webshims.M)){
+						webshims.M[i] = Modernizr[i];
+					}
+				}
+				Modernizr = webshims.M;
+			}
+		};
+		switch$();
+		setTimeout(switch$, 90);
+		webshims.ready('DOM', switch$);
+		$(switch$);
+		webshims.ready('WINDOWLOAD', switch$);
+		
+	}
+
 	//shortcus
 	var modules = webshims.modules;
 	var listReg = /\s*,\s*/;
@@ -8,6 +48,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 	//proxying attribute
 	var olds = {};
 	var havePolyfill = {};
+	var hasPolyfillMethod = {};
 	var extendedProps = {};
 	var extendQ = {};
 	var modifyProps = {};
@@ -16,6 +57,26 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 	var singleVal = function(elem, name, val, pass, _argless){
 		return (_argless) ? oldVal.call($(elem)) : oldVal.call($(elem), val);
 	};
+	
+	//jquery mobile and jquery ui
+	if(!$.widget){
+		(function(){
+			var _cleanData = $.cleanData;
+			$.cleanData = function( elems ) {
+				if(!$.widget){
+					for ( var i = 0, elem; (elem = elems[i]) != null; i++ ) {
+						try {
+							$( elem ).triggerHandler( "remove" );
+						// http://bugs.jquery.com/ticket/8235
+						} catch( e ) {}
+					}
+				}
+				_cleanData( elems );
+			};
+		})();
+	}
+	
+
 	$.fn.val = function(val){
 		var elem = this[0];
 		if(arguments.length && val == null){
@@ -44,6 +105,22 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			}
 		});
 	};
+	$.fn.onTrigger = function(evt, fn){
+		return this.on(evt, fn).each(fn);
+	};
+	
+	$.fn.onWSOff = function(evt, fn, trigger, evtDel){
+		if(!evtDel){
+			evtDel = document;
+		}
+		$(evtDel)[trigger ? 'onTrigger' : 'on'](evt, fn);
+		this.on('remove', function(e){
+			if(!e.originalEvent){
+				$(evtDel).off(evt, fn);
+			}
+		});
+		return this;
+	};
 	
 	var dataID = '_webshimsLib'+ (Math.round(Math.random() * 1000));
 	var elementData = function(elem, key, val){
@@ -65,13 +142,51 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 
 	[{name: 'getNativeElement', prop: 'nativeElement'}, {name: 'getShadowElement', prop: 'shadowElement'}, {name: 'getShadowFocusElement', prop: 'shadowFocusElement'}].forEach(function(data){
 		$.fn[data.name] = function(){
-			return this.map(function(){
+			var elems = [];
+			this.each(function(){
 				var shadowData = elementData(this, 'shadowData');
-				return shadowData && shadowData[data.prop] || this;
+				var elem = shadowData && shadowData[data.prop] || this;
+				if($.inArray(elem, elems) == -1){
+					elems.push(elem);
+				}
 			});
+			return this.pushStack(elems);
 		};
 	});
 	
+	//add support for $('video').trigger('play') in case extendNative is set to false
+	if(!webshims.cfg.extendNative && !webshims.cfg.noTriggerOverride){
+		(function(oldTrigger){
+			$.event.trigger = function(event, data, elem, onlyHandlers){
+				
+				if(!hasPolyfillMethod[event] || onlyHandlers || !elem || elem.nodeType !== 1){
+					return oldTrigger.apply(this, arguments);
+				}
+				var ret, isOrig, origName;
+				var origFn = elem[event];
+				var polyfilledFn = $.prop(elem, event);
+				var changeFn = polyfilledFn && origFn != polyfilledFn;
+				if(changeFn){
+					origName = '__ws'+event;
+					isOrig = (event in elem) && has.call(elem, event);
+					elem[event] = polyfilledFn;
+					elem[origName] = origFn;
+				}
+				
+				ret = oldTrigger.apply(this, arguments);
+				if (changeFn) {
+					if(isOrig){
+						elem[event] = origFn;
+					} else {
+						delete elem[event];
+					}
+					delete elem[origName];
+				}
+				
+				return ret;
+			};
+		})($.event.trigger);
+	}
 	
 	['removeAttr', 'prop', 'attr'].forEach(function(type){
 		olds[type] = $[type];
@@ -156,6 +271,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			}
 			var oldDesc = extendedProps[nodeName][prop][type];
 			var getSup = function(propType, descriptor, oDesc){
+				var origProp;
 				if(descriptor && descriptor[propType]){
 					return descriptor[propType];
 				}
@@ -172,8 +288,10 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 					};
 				}
 				if(type == 'prop' && propType == 'value' && desc.value.apply){
+					origProp = '__ws'+prop;
+					hasPolyfillMethod[prop] = true;
 					return  function(value){
-						var sup = olds[type](this, prop);
+						var sup = this[origProp] || olds[type](this, prop);
 						if(sup && sup.apply){
 							sup = sup.apply(this, arguments);
 						} 
@@ -191,7 +309,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 						getSup('set', desc, oldDesc) : 
 						(webshims.cfg.useStrict && prop == 'prop') ? 
 							function(){throw(prop +' is readonly on '+ nodeName);} : 
-							$.noop
+							function(){webshims.info(prop +' is readonly on '+ nodeName);}
 					;
 				}
 				if(!desc.get){
@@ -209,15 +327,14 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 		
 	});
 	
-	//see also: https://github.com/lojjic/PIE/issues/40 | https://prototype.lighthouseapp.com/projects/8886/tickets/1107-ie8-fatal-crash-when-prototypejs-is-loaded-with-rounded-cornershtc
-	var isExtendNativeSave = (!$.browser.msie || parseInt($.browser.version, 10) > 8);
 	var extendNativeValue = (function(){
 		var UNKNOWN = webshims.getPrototypeOf(document.createElement('foobar'));
-		var has = Object.prototype.hasOwnProperty;
+		
+		//see also: https://github.com/lojjic/PIE/issues/40 | https://prototype.lighthouseapp.com/projects/8886/tickets/1107-ie8-fatal-crash-when-prototypejs-is-loaded-with-rounded-cornershtc
+		var isExtendNativeSave = Modernizr.advancedObjectProperties && Modernizr.objectAccessor;
 		return function(nodeName, prop, desc){
-			var elem = document.createElement(nodeName);
-			var elemProto = webshims.getPrototypeOf(elem);
-			if( isExtendNativeSave && elemProto && UNKNOWN !== elemProto && ( !elem[prop] || !has.call(elem, prop) ) ){
+			var elem , elemProto;
+			 if( isExtendNativeSave && (elem = document.createElement(nodeName)) && (elemProto = webshims.getPrototypeOf(elem)) && UNKNOWN !== elemProto && ( !elem[prop] || !has.call(elem, prop) ) ){
 				var sup = elem[prop];
 				desc._supvalue = function(){
 					if(sup && sup.apply){
@@ -334,20 +451,28 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 	};
 	
 	$.extend(webshims, {
-
 		getID: (function(){
 			var ID = new Date().getTime();
 			return function(elem){
 				elem = $(elem);
-				var id = elem.attr('id');
+				var id = elem.prop('id');
 				if(!id){
 					ID++;
 					id = 'ID-'+ ID;
-					elem.attr('id', id);
+					elem.eq(0).prop('id', id);
 				}
 				return id;
 			};
 		})(),
+		implement: function(elem, type){
+			var data = elementData(elem, 'implemented') || elementData(elem, 'implemented', {});
+			if(data[type]){
+				webshims.warn(type +' already implemented for element #'+elem.id);
+				return false;
+			}
+			data[type] = true;
+			return true;
+		},
 		extendUNDEFProp: function(obj, props){
 			$.each(props, function(name, prop){
 				if( !(name in obj) ){
@@ -355,116 +480,241 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 				}
 			});
 		},
+		getOptions: (function(){
+			var normalName = /\-([a-z])/g;
+			var regs = {};
+			var nameRegs = {};
+			var regFn = function(f, upper){
+				return upper.toLowerCase();
+			};
+			var nameFn = function(f, dashed){
+				return dashed.toUpperCase();
+			};
+			return function(elem, name, bases, stringAllowed){
+				if(nameRegs[name]){
+					name = nameRegs[name];
+				} else {
+					nameRegs[name] = name.replace(normalName, nameFn);
+					name = nameRegs[name];
+				}
+				var data = elementData(elem, 'cfg'+name);
+				var dataName;
+				var cfg = {};
+				
+				if(data){
+					return data;
+				}
+				data = $(elem).data();
+				if(data && typeof data[name] == 'string'){
+					if(stringAllowed){
+						return elementData(elem, 'cfg'+name, data[name]);
+					}
+					webshims.error('data-'+ name +' attribute has to be a valid JSON, was: '+ data[name]);
+				}
+				if(!bases){
+					bases = [true, {}];
+				} else if(!Array.isArray(bases)){
+					bases = [true, {}, bases];
+				} else {
+					bases.unshift(true, {});
+				}
+				
+				if(data && typeof data[name] == 'object'){
+					bases.push(data[name]);
+				}
+				
+				if(!regs[name]){
+					regs[name] = new RegExp('^'+ name +'([A-Z])');
+				}
+				
+				for(dataName in data){
+					if(regs[name].test(dataName)){
+						cfg[dataName.replace(regs[name], regFn)] = data[dataName];
+					}
+				}
+				bases.push(cfg);
+				return elementData(elem, 'cfg'+name, $.extend.apply($, bases));
+			};
+		})(),
 		//http://www.w3.org/TR/html5/common-dom-interfaces.html#reflect
 		createPropDefault: createPropDefault,
 		data: elementData,
-		moveToFirstEvent: (function(){
-			var getData = $._data ? '_data' : 'data';
-			return function(elem, eventType, bindType){
-				var events = ($[getData](elem, 'events') || {})[eventType];
-				var fn;
-				
-				if(events && events.length > 1){
-					fn = events.pop();
-					if(!bindType){
-						bindType = 'bind';
-					}
-					if(bindType == 'bind' && events.delegateCount){
-						events.splice( events.delegateCount, 0, fn);
-					} else {
-						events.unshift( fn );
-					}
-					
-					
+		moveToFirstEvent: function(elem, eventType, bindType){
+			var events = ($._data(elem, 'events') || {})[eventType];
+			var fn;
+			
+			if(events && events.length > 1){
+				fn = events.pop();
+				if(!bindType){
+					bindType = 'bind';
 				}
-				elem = null;
-			};
-		})(),
+				if(bindType == 'bind' && events.delegateCount){
+					events.splice( events.delegateCount, 0, fn);
+				} else {
+					events.unshift( fn );
+				}
+				
+				
+			}
+			elem = null;
+		},
 		addShadowDom: (function(){
 			var resizeTimer;
 			var lastHeight;
 			var lastWidth;
-			var handler;
+			var $window = $(window);
 			var docObserve = {
 				init: false,
-				start: function(){
-					if(!this.init){
-						this.init = true;
-						this.height = $(document).height();
-						this.width = $(document).width();
-						setInterval(function(){
-							var height = $(document).height();
-							var width = $(document).width();
-							if(height != docObserve.height || width != docObserve.width){
-								docObserve.height = height;
-								docObserve.width = width;
-								handler({type: 'docresize'});
-							}
-						}, 400);
-					}
-				}
-			};
-			
-			handler = function(e){
-				clearTimeout(resizeTimer);
-				resizeTimer = setTimeout(function(){
-					if(e.type == 'resize'){
-						var width = $(window).width();
-						var height = $(window).width();
-						if(height == lastHeight && width == lastWidth){
-							return;
+				runs: 0,
+				test: function(){
+					var height = docObserve.getHeight();
+					var width = docObserve.getWidth();
+					
+					if(height != docObserve.height || width != docObserve.width){
+						docObserve.height = height;
+						docObserve.width = width;
+						docObserve.handler({type: 'docresize'});
+						docObserve.runs++;
+						if(docObserve.runs < 9){
+							setTimeout(docObserve.test, 90);
 						}
-						lastHeight = height;
-						lastWidth = width;
-						docObserve.height = $(document).height();
-						docObserve.width = $(document).width();
+					} else {
+						docObserve.runs = 0;
 					}
-					$.event.trigger('updateshadowdom');
-				}, 40);
-			};
-			$(window).bind('resize', handler);
-			
-			$.event.customEvent.updateshadowdom = true;
-			
-			return function(nativeElem, shadowElem, opts){
-				opts = opts || {};
-				if(nativeElem.jquery){
-					nativeElem = nativeElem[0];
-				}
-				if(shadowElem.jquery){
-					shadowElem = shadowElem[0];
-				}
-				var nativeData = $.data(nativeElem, dataID) || $.data(nativeElem, dataID, {});
-				var shadowData = $.data(shadowElem, dataID) || $.data(shadowElem, dataID, {});
-				var shadowFocusElementData = {};
-				if(!opts.shadowFocusElement){
-					opts.shadowFocusElement = shadowElem;
-				} else if(opts.shadowFocusElement){
-					if(opts.shadowFocusElement.jquery){
-						opts.shadowFocusElement = opts.shadowFocusElement[0];
-					}
-					shadowFocusElementData = $.data(opts.shadowFocusElement, dataID) || $.data(opts.shadowFocusElement, dataID, shadowFocusElementData);
-				}
-				
-				nativeData.hasShadow = shadowElem;
-				shadowFocusElementData.nativeElement = shadowData.nativeElement = nativeElem;
-				shadowFocusElementData.shadowData = shadowData.shadowData = nativeData.shadowData = {
-					nativeElement: nativeElem,
-					shadowElement: shadowElem,
-					shadowFocusElement: opts.shadowFocusElement
-				};
-				if(opts.shadowChilds){
-					opts.shadowChilds.each(function(){
-						elementData(this, 'shadowData', shadowData.shadowData);
+				},
+				handler: (function(){
+					var trigger = function(){
+						$(document).triggerHandler('updateshadowdom');
+					};
+					return function(e){
+						clearTimeout(resizeTimer);
+						resizeTimer = setTimeout(function(){
+							if(e.type == 'resize'){
+								var width = $window.width();
+								var height = $window.width();
+
+								if(height == lastHeight && width == lastWidth){
+									return;
+								}
+								lastHeight = height;
+								lastWidth = width;
+								
+								docObserve.height = docObserve.getHeight();
+								docObserve.width = docObserve.getWidth();
+							}
+
+							if(window.requestAnimationFrame){
+								requestAnimationFrame(trigger);
+							} else {
+								setTimeout(trigger, 0);
+							}
+							
+						}, (e.type == 'resize' && !window.requestAnimationFrame) ? 50 : 9);
+					};
+				})(),
+				_create: function(){
+					$.each({ Height: "getHeight", Width: "getWidth" }, function(name, type){
+						var body = document.body;
+						var doc = document.documentElement;
+						docObserve[type] = function(){
+							return Math.max(
+								body[ "scroll" + name ], doc[ "scroll" + name ],
+								body[ "offset" + name ], doc[ "offset" + name ],
+								doc[ "client" + name ]
+							);
+						};
 					});
+				},
+				start: function(){
+					if(!this.init && document.body){
+						this.init = true;
+						this._create();
+						this.height = docObserve.getHeight();
+						this.width = docObserve.getWidth();
+						setInterval(this.test, 600);
+						$(this.test);
+						webshims.ready('WINDOWLOAD', this.test);
+						$(document).on('updatelayout.webshim pageinit popupafteropen panelbeforeopen tabsactivate collapsibleexpand shown.bs.modal shown.bs.collapse slid.bs.carousel', this.handler);
+						$(window).on('resize', this.handler);
+						(function(){
+							var oldAnimate = $.fn.animate;
+							var animationTimer;
+							
+							$.fn.animate = function(){
+								clearTimeout(animationTimer);
+								animationTimer = setTimeout(function(){
+									docObserve.test();
+								}, 99);
+								
+								return oldAnimate.apply(this, arguments);
+							};
+						})();
+					}
 				}
-				
-				if(opts.data){
-					shadowFocusElementData.shadowData.data = shadowData.shadowData.data = nativeData.shadowData.data = opts.data;
+			};
+			
+			
+			webshims.docObserve = function(){
+				webshims.ready('DOM', function(){
+					docObserve.start();
+					if($.support.boxSizing == null){
+						$(function(){
+							if($.support.boxSizing){
+								docObserve.handler({type: 'boxsizing'});
+							}
+						});
+					}
+				});
+			};
+			return function(nativeElem, shadowElem, opts){
+				if(nativeElem && shadowElem){
+					opts = opts || {};
+					if(nativeElem.jquery){
+						nativeElem = nativeElem[0];
+					}
+					if(shadowElem.jquery){
+						shadowElem = shadowElem[0];
+					}
+					var nativeData = $.data(nativeElem, dataID) || $.data(nativeElem, dataID, {});
+					var shadowData = $.data(shadowElem, dataID) || $.data(shadowElem, dataID, {});
+					var shadowFocusElementData = {};
+					if(!opts.shadowFocusElement){
+						opts.shadowFocusElement = shadowElem;
+					} else if(opts.shadowFocusElement){
+						if(opts.shadowFocusElement.jquery){
+							opts.shadowFocusElement = opts.shadowFocusElement[0];
+						}
+						shadowFocusElementData = $.data(opts.shadowFocusElement, dataID) || $.data(opts.shadowFocusElement, dataID, shadowFocusElementData);
+					}
+					
+					$(nativeElem).on('remove', function(e){
+						if (!e.originalEvent) {
+							setTimeout(function(){
+								$(shadowElem).remove();
+							}, 4);
+						}
+					});
+					
+					nativeData.hasShadow = shadowElem;
+					shadowFocusElementData.nativeElement = shadowData.nativeElement = nativeElem;
+					shadowFocusElementData.shadowData = shadowData.shadowData = nativeData.shadowData = {
+						nativeElement: nativeElem,
+						shadowElement: shadowElem,
+						shadowFocusElement: opts.shadowFocusElement
+					};
+					if(opts.shadowChilds){
+						opts.shadowChilds.each(function(){
+							elementData(this, 'shadowData', shadowData.shadowData);
+						});
+					}
+					
+					if(opts.data){
+						shadowFocusElementData.shadowData.data = shadowData.shadowData.data = nativeData.shadowData.data = opts.data;
+					}
+					opts = null;
 				}
-				opts = null;
-				docObserve.start();
-			}
+				webshims.docObserve();
+			};
 		})(),
 		propTypes: {
 			standard: function(descs, name){
@@ -515,7 +765,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 							
 							anchor.setAttribute('href', href+'' );
 							
-							if(!$.support.hrefNormalized){
+							if(!supportHrefNormalized){
 								try {
 									$(anchor).insertAfter(this);
 									ret = anchor.getAttribute('href', 4);
@@ -574,7 +824,12 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			havePolyfill[prop] = true;
 						
 			if(descs.reflect){
-				webshims.propTypes[descs.propType || 'standard'](descs, prop);
+				if(descs.propType && !webshims.propTypes[descs.propType]){
+					webshims.error('could not finde propType '+ descs.propType);
+				} else {
+					webshims.propTypes[descs.propType || 'standard'](descs, prop);
+				}
+				
 			}
 			
 			['prop', 'attr', 'removeAttr'].forEach(function(type){
@@ -607,7 +862,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 				}
 				if(propType){
 					if(descs[prop][propType]){
-						webshims.log('override: '+ name +'['+prop +'] for '+ propType);
+						//webshims.log('override: '+ name +'['+prop +'] for '+ propType);
 					} else {
 						descs[prop][propType] = {};
 						['value', 'set', 'get'].forEach(function(copyProp){
@@ -694,13 +949,17 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			webshims.defineNodeNamesProperty(elementNames, prop, {
 				attr: {
 					set: function(val){
-						this.setAttribute(prop, val);
+						if(descs.useContentAttribute){
+							webshims.contentAttr(this, prop, val);
+						} else {
+							this.setAttribute(prop, val);
+						}
 						if(descs.set){
 							descs.set.call(this, true);
 						}
 					},
 					get: function(){
-						var ret = this.getAttribute(prop);
+						var ret = (descs.useContentAttribute) ? webshims.contentAttr(this, prop) : this.getAttribute(prop);
 						return (ret == null) ? undefined : prop;
 					}
 				},
@@ -737,109 +996,70 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			}
 		},
 		
-//		set current Lang:
-//			- webshims.activeLang(lang:string);
-//		get current lang
-//			- webshims.activeLang();
-//		get current lang
-//			webshims.activeLang({
-//				register: moduleName:string,
-//				callback: callback:function
-//			});
-//		get/set including removeLang
-//			- webshims.activeLang({
-//				module: moduleName:string,
-//				callback: callback:function,
-//				langObj: languageObj:array/object
-//			});
 		activeLang: (function(){
-			var callbacks = [];
-			var registeredCallbacks = {};
-			var currentLang;
-			var shortLang;
-			var notLocal = /:\/\/|^\.*\//;
-			var loadRemoteLang = function(data, lang, options){
-				var langSrc;
-				if(lang && options && $.inArray(lang, options.availabeLangs || []) !== -1){
-					data.loading = true;
-					langSrc = options.langSrc;
-					if(!notLocal.test(langSrc)){
-						langSrc = webshims.cfg.basePath+langSrc;
-					}
-					webshims.loader.loadScript(langSrc+lang+'.js', function(){
-						if(data.langObj[lang]){
-							data.loading = false;
-							callLang(data, true);
-						} else {
-							$(function(){
-								if(data.langObj[lang]){
-									callLang(data, true);
-								}
-								data.loading = false;
+			var curLang = [];
+			var langDatas = [];
+			var loading = {};
+			var load = function(src, obj, loadingLang){
+				obj._isLoading = true;
+				if(loading[src]){
+					loading[src].push(obj);
+				} else {
+					loading[src] = [obj];
+					webshims.loader.loadScript(src, function(){
+						if(loadingLang == curLang.join()){
+							$.each(loading[src], function(i, obj){
+								select(obj);
 							});
 						}
+						delete loading[src];
 					});
-					return true;
-				}
-				return false;
-			};
-			var callRegister = function(module){
-				if(registeredCallbacks[module]){
-					registeredCallbacks[module].forEach(function(data){
-						data.callback();
-					});
-				}
-			};
-			var callLang = function(data, _noLoop){
-				if(data.activeLang != currentLang && data.activeLang !== shortLang){
-					var options = modules[data.module].options;
-					if( data.langObj[currentLang] || (shortLang && data.langObj[shortLang]) ){
-						data.activeLang = currentLang;
-						data.callback(data.langObj[currentLang] || data.langObj[shortLang], currentLang);
-						callRegister(data.module);
-					} else if( !_noLoop &&
-						!loadRemoteLang(data, currentLang, options) && 
-						!loadRemoteLang(data, shortLang, options) && 
-						data.langObj[''] && data.activeLang !== '' ) {
-						data.activeLang = '';
-						data.callback(data.langObj[''], currentLang);
-						callRegister(data.module);
-					}
 				}
 			};
 			
-			
-			var activeLang = function(lang){
-				
-				if(typeof lang == 'string' && lang !== currentLang){
-					currentLang = lang;
-					shortLang = currentLang.split('-')[0];
-					if(currentLang == shortLang){
-						shortLang = false;
+			var select = function(obj){
+				var oldLang = obj.__active;
+				var selectLang = function(i, lang){
+					obj._isLoading = false;
+					if(obj[lang] || obj.availableLangs.indexOf(lang) != -1){
+						if(obj[lang]){
+							obj.__active = obj[lang];
+							obj.__activeName = lang;
+						} else {
+							load(obj.langSrc+lang, obj, curLang.join());
+						}
+						return false;
 					}
-					$.each(callbacks, function(i, data){
-						callLang(data);
-					});
+				};
+				$.each(curLang, selectLang);
+				if(!obj.__active){
+					obj.__active = obj[''];
+					obj.__activeName = '';
+				}
+				if(oldLang != obj.__active){
+					$(obj).trigger('change');
+				}
+			};
+			return function(lang){
+				var shortLang;
+				if(typeof lang == 'string'){
+					if(curLang[0] != lang){
+						curLang = [lang];
+						shortLang = curLang[0].split('-')[0];
+						if(shortLang && shortLang != lang){
+							curLang.push(shortLang);
+						}
+						langDatas.forEach(select);
+					}
 				} else if(typeof lang == 'object'){
-					
-					if(lang.register){
-						if(!registeredCallbacks[lang.register]){
-							registeredCallbacks[lang.register] = [];
-						}
-						registeredCallbacks[lang.register].push(lang);
-						lang.callback();
-					} else {
-						if(!lang.activeLang){
-							lang.activeLang = '';
-						}
-						callbacks.push(lang);
-						callLang(lang);
+					if(!lang.__active){
+						langDatas.push(lang);
+						select(lang);
 					}
+					return lang.__active;
 				}
-				return currentLang;
+				return curLang[0];
 			};
-			
-			return activeLang;
 		})()
 	});
 	
@@ -861,48 +1081,65 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 	});
 	
 	webshims.isReady('webshimLocalization', true);
-});
-//html5a11y
-(function($, document){
-	var browserVersion = $.webshims.browserVersion;
-	if($.browser.mozilla && browserVersion > 5){return;}
-	if (!$.browser.msie || (browserVersion < 12 && browserVersion > 7)) {
-		var elemMappings = {
-			article: "article",
-			aside: "complementary",
-			section: "region",
-			nav: "navigation",
-			address: "contentinfo"
-		};
-		var addRole = function(elem, role){
-			var hasRole = elem.getAttribute('role');
-			if (!hasRole) {
-				elem.setAttribute('role', role);
-			}
-		};
-		
-		$.webshims.addReady(function(context, contextElem){
-			$.each(elemMappings, function(name, role){
-				var elems = $(name, context).add(contextElem.filter(name));
-				for (var i = 0, len = elems.length; i < len; i++) {
-					addRole(elems[i], role);
-				}
-			});
-			if (context === document) {
-				var header = document.getElementsByTagName('header')[0];
-				var footers = document.getElementsByTagName('footer');
-				var footerLen = footers.length;
-				if (header && !$(header).closest('section, article')[0]) {
-					addRole(header, 'banner');
-				}
-				if (!footerLen) {
-					return;
-				}
-				var footer = footers[footerLen - 1];
-				if (!$(footer).closest('section, article')[0]) {
-					addRole(footer, 'contentinfo');
-				}
+
+//html5a11y + hidden attribute
+(function(){
+	if(('content' in document.createElement('template'))){return;}
+	
+	$(function(){
+		var main = $('main').attr({role: 'main'});
+		if(main.length > 1){
+			webshims.error('only one main element allowed in document');
+		} else if(main.is('article *, section *')) {
+			webshims.error('main not allowed inside of article/section elements');
+		}
+	});
+	
+	if(('hidden' in document.createElement('a'))){
+		return;
+	}
+	
+	webshims.defineNodeNamesBooleanProperty(['*'], 'hidden');
+	
+	var elemMappings = {
+		article: "article",
+		aside: "complementary",
+		section: "region",
+		nav: "navigation",
+		address: "contentinfo"
+	};
+	var addRole = function(elem, role){
+		var hasRole = elem.getAttribute('role');
+		if (!hasRole) {
+			elem.setAttribute('role', role);
+		}
+	};
+	
+	
+	$.webshims.addReady(function(context, contextElem){
+		$.each(elemMappings, function(name, role){
+			var elems = $(name, context).add(contextElem.filter(name));
+			for (var i = 0, len = elems.length; i < len; i++) {
+				addRole(elems[i], role);
 			}
 		});
-	}
-})(jQuery, document);
+		if (context === document) {
+			var header = document.getElementsByTagName('header')[0];
+			var footers = document.getElementsByTagName('footer');
+			var footerLen = footers.length;
+			
+			if (header && !$(header).closest('section, article')[0]) {
+				addRole(header, 'banner');
+			}
+			if (!footerLen) {
+				return;
+			}
+			var footer = footers[footerLen - 1];
+			if (!$(footer).closest('section, article')[0]) {
+				addRole(footer, 'contentinfo');
+			}
+		}
+	});
+	
+})();
+});

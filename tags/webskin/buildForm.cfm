@@ -68,6 +68,7 @@
 			<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an virtual directory in your webserver or copy the js and css into the project for the idlform plugin to work.")#</cfoutput>
 		</skin:bubble>
 	<cfelse>
+		<skin:loadJs id="jquery" />
 		<skin:loadJs id="uniformJS" />
 		<skin:loadCss id="uniformCSS" />
 		<skin:loadCss id="uniformTheme" />
@@ -76,9 +77,9 @@
 		<skin:loadCss id="idlformCSS" />
 		<skin:onReady id="idlFormInline">
 			<cfoutput>
-				$j("form.idlform select, form.idlform input, form.idlform button, form.idlform textarea").uniform2();
-				$j("form.idlform input:file").uniform2({fileBtnText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@label","Choose")#&hellip;'});
-				$j("form.idlform input:file").uniform2({fileDefaultText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@text","No file selected")#&hellip;'});
+				$j("form.idlform select, form.idlform input, form.idlform button, form.idlform textarea").uniform();
+				$j("form.idlform input:file").uniform({fileBtnText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@label","Choose")#&hellip;'});
+				$j("form.idlform input:file").uniform({fileDefaultText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@text","No file selected")#&hellip;'});
 				$j.webshims.setOptions("waitReady",false);
 				<cfif application.idlform.bIdlFormAlias>
 					$j.webshims.setOptions("basePath", "/idlform/js/js-webshim/dev/shims/");
