@@ -22,4 +22,4 @@ Change this to include idlform:
 Update your application scope and deploy the database schema changes.
 
 ## License
-This plugin is open-source under the GNU GENERAL PUBLIC LICENSE
+This plugin is open-source under the GNU LESSER GENERAL PUBLIC LICENSE V3
