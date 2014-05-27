@@ -409,7 +409,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		var stepDescriptor = webshims.defineNodeNameProperty('input', name, {
 			prop: {
 				value: function(factor){
-					var step, val, dateVal, valModStep, alignValue, cache, base, attrVal;
+					var step, val, valModStep, alignValue, cache, base, attrVal;
 					var type = getType(this);
 					if(typeModels[type] && typeModels[type].asNumber){
 						cache = {type: type};
@@ -419,12 +419,9 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 						}
 						factor *= stepFactor;
 						
-						val = $.prop(this, 'valueAsNumber');
+
 						
-						if(isNaN(val)){
-							webshims.info("valueAsNumber is NaN can't apply stepUp/stepDown ");
-							throw('invalid state error');
-						}
+
 						
 						step = webshims.getStep(this, type);
 						
@@ -435,7 +432,21 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 						
 						webshims.addMinMaxNumberToCache('min', $(this), cache);
 						webshims.addMinMaxNumberToCache('max', $(this), cache);
-						
+
+						val = $.prop(this, 'valueAsNumber');
+
+						if(factor > 0 && !isNaN(cache.minAsNumber) && (isNaN(val) || cache.minAsNumber > val)){
+							$.prop(this, 'valueAsNumber', cache.minAsNumber);
+							return;
+						} else if(factor < 0 && !isNaN(cache.maxAsNumber) && (isNaN(val) || cache.maxAsNumber < val)){
+							$.prop(this, 'valueAsNumber', cache.maxAsNumber);
+							return;
+						}
+
+						if(isNaN(val)){
+							val = 0;
+						}
+
 						base = cache.minAsNumber;
 						
 						if(isNaN(base) && (attrVal = $.prop(this, 'defaultValue'))){
@@ -460,7 +471,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 						
 						if( (!isNaN(cache.maxAsNumber) && val > cache.maxAsNumber) || (!isNaN(cache.minAsNumber) && val < cache.minAsNumber) ){
 							webshims.info("max/min overflow can't apply stepUp/stepDown");
-							throw('invalid state error');
+							return;
 						}
 						
 						$.prop(this, 'valueAsNumber', val);
@@ -814,9 +825,10 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		});
 	}
 	
-});;(function($){
-	
-	var id = 0;
+});
+;(function($){
+	"use strict";
+
 	var isNumber = function(string){
 		return (typeof string == 'number' || (string && string == string * 1));
 	};
@@ -831,10 +843,11 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		_create: function(){
 			var i;
 			
-			this.element.addClass('ws-range').attr({role: 'slider'}).append('<span class="ws-range-min ws-range-progress" /><span class="ws-range-rail ws-range-track"><span class="ws-range-thumb"><span><span data-value="" data-valuetext="" /></span></span></span>');
+			this.element.addClass(this.options.baseClass || 'ws-range ws-input').attr({role: 'slider'}).append('<span class="ws-range-rail ws-range-track"><span class="ws-range-min ws-range-progress" /><span class="ws-range-thumb"><span><span data-value="" data-valuetext="" /></span></span></span>');
 			this.trail = $('.ws-range-track', this.element);
 			this.range = $('.ws-range-progress', this.element);
 			this.thumb = $('.ws-range-thumb', this.trail);
+			this.thumbValue = $('span[data-value]', this.thumb);
 			
 			this.updateMetrics();
 			
@@ -885,8 +898,8 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			
 			
 			if(!animate || !$.fn.animate){
-				this.thumb.css(thumbStyle);
-				this.range.css(rangeStyle);
+				this.thumb[0].style[this.dirs.left] = thumbStyle[this.dirs.left];
+				this.range[0].style[this.dirs.width] = rangeStyle[this.dirs.width];
 			} else {
 				if(typeof animate != 'object'){
 					animate = {};
@@ -909,20 +922,19 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		_setValueMarkup: function(){
 			var o = this.options;
 			var textValue = o.textValue ? o.textValue(this.options.value) : o.options[o.value] || o.value;
-			this.element.attr({
-				'aria-valuenow': this.options.value,
-				'aria-valuetext': textValue
-			});
-			$('span[data-value]', this.thumb).attr({
-				'data-value': this.options.value,
-				'data-valuetext': textValue
-			});
+
+			this.element[0].setAttribute('aria-valuenow', this.options.value);
+			this.element[0].setAttribute('aria-valuetext', textValue);
+
+			this.thumbValue[0].setAttribute('data-value', this.options.value);
+			this.thumbValue[0].setAttribute('data-valuetext', textValue);
+
 			if(o.selectedOption){
 				$(o.selectedOption).removeClass('ws-selected-option');
 				o.selectedOption = null;
 			}
 			if(o.value in o.options){
-				o.selectedOption = $('[data-value="'+o.value+'"].ws-range-ticks').addClass('ws-selected-option');
+				o.selectedOption = $('[data-value="'+o.value+'"].ws-range-ticks', this.trail).addClass('ws-selected-option');
 			}
 		},
 		initDataList: function(){
@@ -1016,10 +1028,12 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		},
 		min: function(val){
 			this.options.min = retDefault(val, 0);
+			this.element.attr('aria-valuemin', this.options.min);
 			this.value(this.options.value, true);
 		},
 		max: function(val){
 			this.options.max = retDefault(val, 100);
+			this.element.attr('aria-valuemax', this.options.max);
 			this.value(this.options.value, true);
 		},
 		step: function(val){
@@ -1192,8 +1206,6 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				if(e.target == window){remove();}
 			};
 			var add = function(e){
-				var outerWidth;
-				
 				if(isActive || (e.type == 'touchstart' && (!e.originalEvent || !e.originalEvent.touches || e.originalEvent.touches.length != 1))){
 					return;
 				}
@@ -1208,7 +1220,6 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 					leftOffset = that.element.offset();
 					widgetUnits = that.element[that.dirs.innerWidth]();
 					if(!widgetUnits || !leftOffset){return;}
-					outerWidth = that.thumb[that.dirs.outerWidth]();
 					leftOffset = leftOffset[that.dirs.pos];
 					widgetUnits = 100 / widgetUnits;
 
@@ -1325,8 +1336,13 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				webshims.ready('WINDOWLOAD', function(){
 					webshims.ready('dom-support', function(){
 						if ($.fn.onWSOff) {
-							that.element.onWSOff('updateshadowdom', function(){
+							var timer;
+							var update = function(){
 								that.updateMetrics();
+							};
+							that.element.onWSOff('updateshadowdom', function(){
+								clearTimeout(timer);
+								timer = setTimeout(update, 100);
 							});
 						}
 					});
@@ -1337,26 +1353,33 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			}
 		},
 		posCenter: function(elem, outerWidth){
-			var temp;
+			var temp, eS;
+
 			if(this.options.calcCenter && (!this._init || this.element[0].offsetWidth)){
 				if(!elem){
 					elem = this.thumb;
 				}
+				eS = elem[0].style;
 				if(!outerWidth){
 					outerWidth = elem[this.dirs.outerWidth]();
 				}
 				outerWidth = outerWidth / -2;
-				elem.css(this.dirs.marginLeft, outerWidth);
-				
+				eS[this.dirs.marginLeft] = outerWidth +'px';
+
 				if(this.options.calcTrail && elem[0] == this.thumb[0]){
 					temp = this.element[this.dirs.innerHeight]();
-					elem.css(this.dirs.marginTop, (elem[this.dirs.outerHeight]() - temp) / -2);
-					this.range.css(this.dirs.marginTop, (this.range[this.dirs.outerHeight]() - temp) / -2 );
+					eS[this.dirs.marginTop] = ((elem[this.dirs.outerHeight]() - temp) / -2) + 'px';
+					this.range[0].style[this.dirs.marginTop] = ((this.range[this.dirs.outerHeight]() - temp) / -2 ) +'px';
+
+					this.range[0].style[this.dirs.posLeft] = outerWidth +'px';
+
 					outerWidth *= -1;
-					this.trail
-						.css(this.dirs.left, outerWidth)
-						.css(this.dirs.right, outerWidth)
-					;
+
+					this.range[0].style[this.dirs.paddingRight] = outerWidth +'px';
+					this.trail[0].style[this.dirs.left] = outerWidth +'px';
+					this.trail[0].style[this.dirs.right] = outerWidth +'px';
+
+
 				}
 			}
 		},
@@ -1365,14 +1388,15 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			this.vertical = (width && this.element.innerHeight() - width  > 10);
 			
 			this.dirs = this.vertical ? 
-				{mouse: 'pageY', pos: 'top', min: 'max', max: 'min', left: 'top', right: 'bottom', width: 'height', innerWidth: 'innerHeight', innerHeight: 'innerWidth', outerWidth: 'outerHeight', outerHeight: 'outerWidth', marginTop: 'marginLeft', marginLeft: 'marginTop'} :
-				{mouse: 'pageX', pos: 'left', min: 'min', max: 'max', left: 'left', right: 'right', width: 'width', innerWidth: 'innerWidth', innerHeight: 'innerHeight', outerWidth: 'outerWidth', outerHeight: 'outerHeight', marginTop: 'marginTop', marginLeft: 'marginLeft'}
+				{mouse: 'pageY', pos: 'top', posLeft: 'bottom', paddingRight: 'paddingTop', min: 'max', max: 'min', left: 'top', right: 'bottom', width: 'height', innerWidth: 'innerHeight', innerHeight: 'innerWidth', outerWidth: 'outerHeight', outerHeight: 'outerWidth', marginTop: 'marginLeft', marginLeft: 'marginTop'} :
+				{mouse: 'pageX', pos: 'left', posLeft: 'left', paddingRight: 'paddingRight', min: 'min', max: 'max', left: 'left', right: 'right', width: 'width', innerWidth: 'innerWidth', innerHeight: 'innerHeight', outerWidth: 'outerWidth', outerHeight: 'outerHeight', marginTop: 'marginTop', marginLeft: 'marginLeft'}
 			;
 			if(!this.vertical && this.element.css('direction') == 'rtl'){
 				this.isRtl = true;
 				this.dirs.left = 'right';
 				this.dirs.right = 'left';
 				this.dirs.marginLeft = 'marginRight';
+				this.dirs.posLeft = 'right';
 			}
 			this.element
 				[this.vertical ? 'addClass' : 'removeClass']('vertical-range')
@@ -1400,7 +1424,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			value: 50, 
 			input: $.noop, 
 			change: $.noop, 
-			_change: $.noop, 
+			_change: $.noop,
 			showLabels: true, 
 			options: {},
 			calcCenter: true,
@@ -1430,7 +1454,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		if(!curCfg[selectName]){
 			var labels = curCfg.date[opts.monthNames] || monthDigits;
 			curCfg[selectName] = ('<option value=""></option>')+$.map(monthDigits, function(val, i){
-				return '<option value="'+val+'"]>'+labels[i]+'</option>';
+				return '<option value="'+val+'">'+labels[i]+'</option>';
 			}).join('');
 		}
 		return curCfg[selectName];
@@ -1625,6 +1649,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 	options.addZero = addZero;
 	webshims.loader.addModule('forms-picker', {
 		noAutoCallback: true,
+		css: 'styles/forms-picker.css',
 		options: options
 	});
 	webshims.loader.addModule('color-picker', {
@@ -1797,8 +1822,40 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		
 		
 		var formatVal = {
-			number: function(val, o){
-				return (val+'').replace(/\,/g, '').replace(/\./, curCfg.numberFormat['.']);
+			number: function(val, o, noCorrect){
+				var parts, len, i, isNegative;
+				if(o && o.nogrouping){
+					return (val+'').replace(/\,/g, '').replace(/\./, curCfg.numberFormat['.']);
+				}
+
+				val += '';
+
+				if(val.charAt(0) == '-'){
+					isNegative = true;
+					val = val.replace('-', '');
+				}
+				parts = val.split('.');
+				len = parts[0].length;
+				i = len - 1;
+
+				val = "";
+				while(i >= 0) {
+					val = parts[0].charAt(i) + val;
+					if (i > 0 && (len - i) % 3 === 0) {
+						val = curCfg.numberFormat[','] + val;
+					}
+					--i;
+				}
+				if(parts[1] != null){
+					if(!noCorrect){
+						parts[1] = parts[1].replace(/\-/g, '0');
+					}
+					val += curCfg.numberFormat['.'] + parts[1];
+				}
+				if(isNegative){
+					val = '-'+val;
+				}
+				return val;
 			},
 			time: function(val){
 				var fVal;
@@ -1834,8 +1891,12 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				var names;
 				var p = val.split('-');
 				if(p[0] && p[1]){
-					names = curCfg.date[options.monthNames] || curCfg.date.monthNames;
-					p[1] = names[(p[1] * 1) - 1];
+
+					if(!options || !options.monthSelect){
+						names = curCfg.date[options.monthNames] || curCfg.date.monthNames;
+						p[1] = names[(p[1] * 1) - 1];
+					}
+
 					if(options && options.splitInput){
 						val = [p[0] || '', p[1] || ''];
 					} else if(p[1]){
@@ -1873,10 +1934,10 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				return ret;
 			}
 		};
-		
+
 		var parseVal = {
 			number: function(val){
-				return (val+'').replace(curCfg.numberFormat[','], '').replace(curCfg.numberFormat['.'], '.');
+				return (val+'').split(curCfg.numberFormat[',']).join('').replace(curCfg.numberFormat['.'], '.');
 			},
 //			week: function(val){
 //				return val;
@@ -1945,7 +2006,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 					val = val.split(curCfg.dFormat);
 				}
 				if(val.length == 3 && val[0] && val[1] && val[2] && (!noCorrect || (val[obj.yy].length > 3 && val[obj.mm].length == 2 && val[obj.dd].length == 2))){
-					if(val[obj.mm] > 12 && val[obj.dd] < 13){
+					if(!opts.noDayMonthSwitch && val[obj.mm] > 12 && val[obj.dd] < 13){
 						tmp = val[obj.dd];
 						val[obj.dd] = val[obj.mm];
 						val[obj.mm] = tmp;
@@ -2027,6 +2088,10 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 						asValue: function(val){
 							var type = (typeof val == 'object') ? 'valueAsDate' : 'valueAsNumber';
 							return input.prop(type, val).prop('value');
+						},
+						asDate: function(val){
+							var type = (typeof val == 'number') ? 'valueAsNumber' : 'value';
+							return input.prop(type, val).prop('valueAsDate');
 						},
 						isValid: function(val, attrs){
 							if(attrs && (attrs.nodeName || attrs.jquery)){
@@ -2301,6 +2366,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				this.asNumber = helper.asNumber;
 				this.asValue = helper.asValue;
 				this.isValid = helper.isValid;
+				this.asDate = helper.asDate;
 				
 				
 				wsWidgetProto._create.apply(this, arguments);
@@ -2340,7 +2406,6 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				}
 				this.elemHelper.prop('valueAsNumber', start);
 				this.options.defValue = this.elemHelper.prop('value');
-				
 			},
 			reorderInputs: function(){
 				if(splitInputs[this.type]){
@@ -2373,7 +2438,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			},
 			toFixed: function(val, force){
 				var o = this.options;
-				if(o.toFixed && o.type == 'number' && val && this.valueAsNumber && (force || !this.element.is(':focus')) && (!o.fixOnlyFloat || (this.valueAsNumber % 1)) && !$(this.orig).is(':invalid')){
+				if(o.toFixed && o.type == 'number' && val && !isNaN(this.valueAsNumber) && (force || !this.element.is(':focus')) && (!o.fixOnlyFloat || (this.valueAsNumber % 1))){
 					val = formatVal[this.type](this.valueAsNumber.toFixed(o.toFixed), this.options);
 				}
 				return val;
@@ -2382,7 +2447,8 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		
 		['defaultValue', 'value'].forEach(function(name){
 			var isValue = name == 'value';
-			spinBtnProto[name] = function(val, force){
+			spinBtnProto[name] = function(val, force, isLive){
+				var selectionEnd;
 				if(!this._init || force || this.options[name] !== val){
 					if(isValue){
 						this._beforeValue(val);
@@ -2401,7 +2467,14 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 							}
 						});
 					} else {
-						this.element.prop(name, this.toFixed(val));
+						val = this.toFixed(val);
+						if(isLive && this._getSelectionEnd){
+							selectionEnd = this._getSelectionEnd(val);
+						}
+						this.element.prop(name, val);
+						if(selectionEnd != null){
+							this.element.prop('selectionEnd', selectionEnd);
+						}
 					}
 					this._propertyChange(name);
 					this.mirrorValidity();
@@ -2414,6 +2487,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			spinBtnProto[name] = function(val){
 				this.elemHelper.prop(name, val);
 				this[numName] = this.asNumber(val);
+
 				if(this.valueAsNumber != null && (isNaN(this.valueAsNumber) || (!isNaN(this[numName]) && (this.valueAsNumber * factor) < (this[numName] * factor)))){
 					this._setStartInRange();
 				}
@@ -2429,7 +2503,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		$.fn.wsBaseWidget = function(opts){
 			opts = $.extend({}, opts);
 			return this.each(function(){
-				$.webshims.objectCreate(wsWidgetProto, {
+				webshims.objectCreate(wsWidgetProto, {
 					element: {
 						value: $(this)
 					}
@@ -2444,7 +2518,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				monthNames: 'monthNamesShort'
 			}, opts);
 			return this.each(function(){
-				$.webshims.objectCreate(spinBtnProto, {
+				webshims.objectCreate(spinBtnProto, {
 					element: {
 						value: $(this)
 					}
@@ -2453,12 +2527,80 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		};
 		
 		$.fn.spinbtnUI.wsProto = spinBtnProto;
+
+		webshims._format = formatVal;
 		
 	})();
-	
+
+
+	$.fn.wsTouchClick = (function(){
+		var supportsTouchaction = ('touchAction' in document.documentElement.style);
+		var addTouch = !supportsTouchaction && ('ontouchstart' in window) && document.addEventListener;
+		return function(target, handler){
+			var touchData, touchEnd, touchStart;
+
+			if(addTouch){
+
+				touchEnd = function(e){
+					var ret, touch;
+					e = e.originalEvent || {};
+					$(this).off('touchend', touchEnd);
+					var changedTouches = e.changedTouches || e.touches;
+					if(!touchData || !changedTouches || changedTouches.length != 1){
+						return;
+					}
+
+					touch = changedTouches[0];
+					if(Math.abs(touchData.x - touch.pageX) > 40 || Math.abs(touchData.y - touch.pageY) > 40 || Date.now() - touchData.now > 600){
+						return;
+					}
+					e.preventDefault();
+					ret = handler.apply(this, arguments);
+
+					return ret;
+				};
+
+				touchStart = function(e){
+					var touch, elemTarget;
+
+
+					if((!e || e.touches.length != 1)){
+						return;
+					}
+					touch = e.touches[0];
+					elemTarget = target ? $(touch.target).closest(target) : $(this);
+					if(!elemTarget.length){
+						return;
+					}
+					touchData = {
+						x: touch.pageX,
+						y: touch.pageY,
+						now: Date.now()
+					};
+					elemTarget.on('touchend', touchEnd);
+				};
+
+				this.each(function(){
+					this.addEventListener('touchstart', touchStart, true);
+				});
+			} else if(supportsTouchaction){
+				this.css('touch-action', 'manipulation');
+			}
+
+			if($.isFunction(target)){
+				handler = target;
+				target = false;
+				this.on('click', handler);
+			} else {
+				this.on('click', target, handler);
+			}
+			return this;
+		};
+	})();
+
 	(function(){
 		var picker = {};
-
+		var assumeVirtualKeyBoard = Modernizr.touchevents || Modernizr.touch || (/android|iphone|ipad|ipod|blackberry|iemobile/i.test(navigator.userAgent.toLowerCase()));
 		webshims.inlinePopover = {
 			_create: function(){
 				this.element = $('<div class="ws-inline-picker"><div class="ws-po-box" /></div>').data('wspopover', this);
@@ -2549,7 +2691,11 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			cancel: function(val, popover, data){
 				if(!data.options.inlinePicker){
 					popover.stopOpen = true;
-					data.element.getShadowFocusElement().trigger('focus');
+					if(assumeVirtualKeyBoard){
+						$('button', data.buttonWrapper).trigger('focus');
+					} else {
+						data.element.getShadowFocusElement().trigger('focus');
+					}
 					setTimeout(function(){
 						popover.stopOpen = false;
 					}, 9);
@@ -2640,6 +2786,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 		
 		
 		picker._common = function(data){
+			if(data.options.nopicker){return;}
 			var options = data.options;
 			var popover = webshims.objectCreate(options.inlinePicker ? webshims.inlinePopover : webshims.wsPopover, {}, $.extend(options.popover || {}, {prepareFor: options.inlinePicker ? data.buttonWrapper : data.element}));
 			var opener = $('<button type="button" class="ws-popover-opener"><span /></button>').appendTo(data.buttonWrapper);
@@ -2709,7 +2856,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			}
 			
 			
-			opener.on({click: open});
+			opener.wsTouchClick(open);
 			
 			if(options.inlinePicker){
 				popover.openedByFocus = true;
@@ -2899,53 +3046,75 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			return $.css(this, 'display') != 'none';
 		};
 		var sizeInput = function(data){
-			var init;
+			var init, parent, lastWidth, left, right, isRtl, hasButtons;
+			var oriStyleO = data.orig.style;
+			var styleO = data.element[0].style;
+			if($.support.boxSizing == null){
+				$(function(){
+					parent = data.orig.parentNode;
+				});
+			} else {
+				parent = data.orig.parentNode;
+			}
 			var updateStyles = function(){
-				$(data.orig).removeClass('ws-important-hide');
-				$.style( data.orig, 'display', '' );
-				var hasButtons, marginR, marginL, left, right, isRtl;
+				var curWidth, marginR, marginL, assignWidth;
 				var correctWidth = 0.8;
-				if(!init || data.orig.offsetWidth){
-					hasButtons = data.buttonWrapper && data.buttonWrapper.filter(isVisible).length;
-					
-					isRtl = hasButtons && data.buttonWrapper.css('direction') == 'rtl';
-					if(isRtl){
-						left = 'Right';
-						right = 'Left';
-					} else {
-						left = 'Left';
-						right = 'Right';
+
+				if(parent){
+					curWidth = parent.offsetWidth;
+				}
+
+				if(!init || (curWidth && curWidth != lastWidth)){
+					lastWidth = curWidth;
+					oriStyleO.display = '';
+					styleO.display = 'none';
+
+					if(!init){
+						hasButtons = data.buttonWrapper && data.buttonWrapper.filter(isVisible).length;
+						isRtl = hasButtons && data.buttonWrapper.css('direction') == 'rtl';
+						if(isRtl){
+							left = 'Right';
+							right = 'Left';
+						} else {
+							left = 'Left';
+							right = 'Right';
+						}
+						if(hasButtons){
+							data.buttonWrapper[isRtl ? 'addClass' : 'removeClass']('ws-is-rtl');
+						}
 					}
-					
+
 					marginR = $.css( data.orig, 'margin'+right);
-					
-					data.element
-						.css('margin'+left, $.css( data.orig, 'margin'+left))
-						.css('margin'+right, hasButtons ? 0 : marginR)
-					;
+
+					styleO['margin'+left] = $.css( data.orig, 'margin'+left);
+					styleO['margin'+right] = hasButtons ? '0px' : marginR;
+
 					
 					if(hasButtons){
-						data.buttonWrapper[isRtl ? 'addClass' : 'removeClass']('ws-is-rtl');
+
 						marginL = (parseInt(data.buttonWrapper.css('margin'+left), 10) || 0);
-						data.element.css('padding'+right, '');
-						
+						styleO['padding'+right] = '';
+
 						if(marginL < 0){
 							marginR = (parseInt(marginR, 10) || 0) + ((data.buttonWrapper.outerWidth() + marginL) * -1);
-							data.buttonWrapper.css('margin'+right, marginR);
-							data.element
-								.css('padding'+right, '')
-								.css('padding'+right, (parseInt( data.element.css('padding'+right), 10) || 0) + data.buttonWrapper.outerWidth())
-							;
+							data.buttonWrapper[0].style['margin'+right] = marginR+'px';
+
+							styleO['padding'+right] = ((parseInt( data.element.css('padding'+right), 10) || 0) + data.buttonWrapper.outerWidth()) +'px';
+
 						} else {
-							data.buttonWrapper.css('margin'+right, marginR);
+							data.buttonWrapper[0].style['margin'+right] = marginR;
 							correctWidth = data.buttonWrapper.outerWidth(true) + correctWidth;
 						}
 					}
-					
-					data.element.outerWidth( $(data.orig).outerWidth() - correctWidth );
+
+					assignWidth = $(data.orig).outerWidth() - correctWidth;
+
+					styleO.display = '';
+					data.element.outerWidth(assignWidth);
+					oriStyleO.display = 'none';
+					init = true;
 				}
-				init = true;
-				$(data.orig).addClass('ws-important-hide');
+
 			};
 			data.element.onWSOff('updateshadowdom', updateStyles, true);
 		};
@@ -2955,11 +3124,11 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 			
 			var type = $.prop(this, 'type');
 			
-			var i, opts, data, optsName, labels, cNames;
+			var i, opts, data, optsName, labels, cNames, hasInitialFocus;
 			if(inputTypes[type] && webshims.implement(this, 'inputwidgets')){
 				data = {};
 				optsName = type;
-				
+				hasInitialFocus = $(this).is(':focus');
 				labels = $(this).jProp('labels');
 				opts = $.extend(webshims.getOptions(this, type, [options.widgets, options[type], $($.prop(this, 'form')).data(type)]), {
 					orig: this,
@@ -3009,6 +3178,7 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				cNames = $.prop(this, 'className');
 				if(opts.classes){
 					cNames += ' '+opts.classes;
+					$(this).addClass(opts.classes);
 				}
 				
 				if(opts.splitInput || type == 'range'){
@@ -3081,7 +3251,10 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 				if(opts.calculateWidth){
 					sizeInput(data.shim);
 				} else {
-					$(this).addClass('ws-important-hide');
+					$(this).css('display', 'none');
+				}
+				if(hasInitialFocus){
+					$(this).getShadowFocusElement().trigger('focus');
 				}
 			}
 			
@@ -3183,7 +3356,6 @@ webshims.register('form-native-extend', function($, webshims, window, doc, undef
 
 ;webshims.register('form-datalist', function($, webshims, window, document, undefined, options){
 	"use strict";
-	var doc = document;
 	var lazyLoad = function(name){
 		if(!name || typeof name != 'string'){
 			name = 'DOM';

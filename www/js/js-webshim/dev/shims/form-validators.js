@@ -1,15 +1,16 @@
 webshims.register('form-validators', function($, webshims, window, document, undefined, options){
 "use strict";
-
+var iValClasses = '.'+ options.iVal.errorClass +', .'+options.iVal.successClass;
 (function(){
 	if(webshims.refreshCustomValidityRules){
 		webshims.error("form-validators already included. please remove custom-validity.js");
 	}
-	
+
 	var customValidityRules = {};
 	var formReady = false;
 	var blockCustom;
 	var initTest;
+	var elemSels = 'input, select, textarea, fieldset[data-dependent-validation]';
 	var onEventTest = function(e){
 		webshims.refreshCustomValidityRules(e.target);
 	};
@@ -25,21 +26,28 @@ webshims.register('form-validators', function($, webshims, window, document, und
 	};
 	
 	webshims.customErrorMessages = {};
-	webshims.addCustomValidityRule = function(name, test, defaultMessage){
-		customValidityRules[name] = test;
-		if(!webshims.customErrorMessages[name]){
-			webshims.customErrorMessages[name] = [];
-			webshims.customErrorMessages[name][''] = defaultMessage || name;
-		}
-		if(formReady){
-			$('input, select, textarea, fieldset[data-dependent-validation]')
+	webshims.addCustomValidityRule = (function(){
+		var timer;
+		var reTest = function(){
+			$(document.querySelectorAll(elemSels))
 				.filter(noValidate)
 				.each(function(){
 					testValidityRules(this);
 				})
 			;
-		}
-	};
+		};
+		return function(name, test, defaultMessage){
+			customValidityRules[name] = test;
+			if(!webshims.customErrorMessages[name]){
+				webshims.customErrorMessages[name] = [];
+				webshims.customErrorMessages[name][''] = defaultMessage || name;
+			}
+			if(formReady){
+				clearTimeout(timer);
+				timer = setTimeout(reTest);
+			}
+		};
+	})();
 	webshims.refreshCustomValidityRules = function(elem){
 		if(!initTest){return;}
 		var val, setMessage;
@@ -93,6 +101,18 @@ webshims.register('form-validators', function($, webshims, window, document, und
 		return message;
 	};
 	var testValidityRules = webshims.refreshCustomValidityRules;
+
+	if(typeof document.activeElement != 'unknown'){
+		$('body').on('click', function(e){
+			if(e.target.type == 'submit'){
+				var activeElement = document.activeElement;
+
+				if(activeElement != e.target && $.data(activeElement, 'webshimsswitchvalidityclass')){
+					$(activeElement).trigger('updatevalidation.webshims');
+				}
+			}
+		});
+	}
 	
 	webshims.ready('forms form-validation', function(){
 		
@@ -104,12 +124,11 @@ webshims.register('form-validators', function($, webshims, window, document, und
 				return null;
 			}
 		};
-		
-		
+
 		setTimeout(function(){
 			webshims.addReady(function(context, selfElement){
 				initTest = true;
-				$('input, select, textarea, fieldset[data-dependent-validation]', context).add(selfElement.filter('input, select, textarea, fieldset[data-dependent-validation]'))
+				$(context.querySelectorAll(elemSels)).add(selfElement.filter(elemSels))
 					.filter(noValidate)
 					.each(function(){
 						testValidityRules(this);
@@ -119,7 +138,7 @@ webshims.register('form-validators', function($, webshims, window, document, und
 				formReady = true;
 			});
 			$(document).on('refreshCustomValidityRules', onEventTest);
-		}, 9);
+		}, 29);
 		
 	});
 	
@@ -128,7 +147,7 @@ webshims.register('form-validators', function($, webshims, window, document, und
 /*
  * adds support for HTML5 constraint validation
  * 	- partial pattern: <input data-partial-pattern="RegExp" />
- *  - creditcard-validation: <input data-creditcard="" />
+ *  - creditcard-validation: <input data-luhn="" />
  *  - several dependent-validation patterns (examples):
  *  	- <input type="email" id="mail" /> <input data-dependent-validation='mail' />
  *  	- <input type="date" id="start" data-dependent-validation='{"from": "end", "prop": "max"}' /> <input type="date" id="end" data-dependent-validation='{"from": "start", "prop": "min"}' />
@@ -151,7 +170,7 @@ webshims.register('form-validators', function($, webshims, window, document, und
 		if(!val || !data.minlength){return;}
 
 		if($.nodeName(elem, 'input')){
-			webshims.warn('depreacated data-minlength usage: Use pattern=".{'+ data.minlength +'3,}" instead.');
+			webshims.warn('depreacated data-minlength usage: Use pattern=".{'+ data.minlength +',}" instead.');
 		}
 		return data.minlength > val.length;
 	}, 'Entered value is too short.');
@@ -177,8 +196,11 @@ webshims.register('form-validators', function($, webshims, window, document, und
 	}, 'Please check one of these checkboxes.');
 	
 	// based on https://sites.google.com/site/abapexamples/javascript/luhn-validation
-	addCustomValidityRule('creditcard', function(elem, value, data){
-		if(!value || (!data || !('creditcard' in data))){return;}
+	addCustomValidityRule('luhn', function(elem, value, data){
+		if(!value || (!data || (!('creditcard' in data) && !('luhn' in data)))){return;}
+		if(('creditcard' in data)){
+			webshims.error('data-creditcard was renamed to data-luhn!!!');
+		}
 		value = value.replace(/\-/g, "");
 		//if it's not numeric return true >- for invalid
 		if(value != value * 1){return true;}
@@ -226,7 +248,7 @@ webshims.register('form-validators', function($, webshims, window, document, und
 			}
 			$.prop( elem, data.prop, val);
 			if(e){
-				$(elem).getShadowElement().filter('.user-error, .user-success').trigger('refreshvalidityui');
+				$(elem).getShadowElement().filter(iValClasses).trigger('updatevalidation.webshims');
 			}
 		};
 		
@@ -264,13 +286,11 @@ webshims.register('form-validators', function($, webshims, window, document, und
 				$(data.masterElement.type === 'radio' && getGroupElements(data.masterElement) || data.masterElement).on('change', depFn);
 			} else {
 				$(data.masterElement).on('change', function(){
+					webshims.refreshCustomValidityRules(elem);
 					$(elem)
 						.getShadowElement()
-						.filter('.user-error, .user-success')
-						.each(function(){
-							webshims.refreshCustomValidityRules(elem);
-						})
-						.trigger('refreshvalidityui')
+						.filter(iValClasses)
+						.trigger('updatevalidation.webshims')
 					;
 				});
 			}
@@ -284,13 +304,20 @@ webshims.register('form-validators', function($, webshims, window, document, und
 		}
 		
 	}, 'The value of this field does not repeat the value of the other field');
-	
-	
+
+	addCustomValidityRule('valuevalidation', function(elem, val, data){
+		if(val && ('valuevalidation' in data)){
+			//Todo allow markup params
+			return $(elem).triggerHandler('valuevalidation', [{value: val, valueAsDate: $.prop(elem, 'valueAsDate'), isPartial: false}]) || '';
+		}
+	}, 'This value is not allowed here');
+
 	if(window.JSON){
 		addCustomValidityRule('ajaxvalidate', function(elem, val, data){
 			if(!val || !data.ajaxvalidate){return;}
 			var opts;
 			if(!data.remoteValidate){
+				webshims.loader.loadList(['jajax']);
 				if(typeof data.ajaxvalidate == 'string'){
 					data.ajaxvalidate = {url: data.ajaxvalidate, depends: $([])};
 				} else {
@@ -318,15 +345,15 @@ webshims.register('form-validators', function($, webshims, window, document, und
 							this.restartAjax = false;
 							this.ajaxLoading = true;
 							$.ajax(
-								$.extend({}, opts, {
+								$.extend({dataType: 'json'}, opts, {
 									url: opts.url,
-									dataType: 'json',
 									depData: remoteData,
 									data: formCFG.fullRemoteForm || opts.fullForm ?
 										$(elem).jProp('form').serializeArray() :
 										remoteData,
 									success: this.getResponse,
-									complete: this._complete
+									complete: this._complete,
+									timeout: 3000
 								})
 							);
 						}
@@ -339,16 +366,21 @@ webshims.register('form-validators', function($, webshims, window, document, und
 						remoteValidate.restartAjax = false;
 					},
 					getResponse: function(data){
+						if(options.transformAjaxValidate){
+							data = options.transformAjaxValidate(data);
+						}
 						if(!data){
 							data = {message: '', valid: true};
 						} else if(typeof data == 'string'){
-							data = JSON.parse(data);
+							try {
+								data = JSON.parse(data);
+							} catch (er){}
 						}
 						
 						remoteValidate.message = ('message' in data) ? data.message : !data.valid;
 						remoteValidate.lastMessage = remoteValidate.message;
 						remoteValidate.blockUpdate = true;
-						$(elem).triggerHandler('refreshvalidityui');
+						$(elem).triggerHandler('updatevalidation.webshims');
 						remoteValidate.message = 'async';
 						remoteValidate.blockUpdate = false;
 					},

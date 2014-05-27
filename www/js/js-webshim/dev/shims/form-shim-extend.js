@@ -30,8 +30,8 @@ var isNumber = function(string){
 			(function(){
 				var find = $.find;
 				var matchesSelector = $.find.matchesSelector;
-				
-				var regExp = /(\:valid|\:invalid|\:optional|\:required|\:in-range|\:out-of-range)(?=[\s\[\~\.\+\>\:\#*]|$)/ig;
+
+				var regExp = /(\:valid|\:invalid|\:optional|\:required)(?=[\s\[\~\.\+\>\:\#*]|$)/ig;
 				var regFn = function(sel){
 					return sel + '-element';
 				};
@@ -96,22 +96,18 @@ var isPlaceholderOptionSelected = function(select){
 var emptyJ = $([]);
 var getGroupElements = function(elem){
 	elem = $(elem);
-	var name;
-	var form;
+	var name, form;
 	var ret = emptyJ;
 	if(elem[0].type == 'radio'){
-		form = elem.prop('form');
 		name = elem[0].name;
 		if(!name){
 			ret = elem;
-		} else if(form){
-			ret = $(form[name]);
 		} else {
+			form = elem.prop('form');
 			ret = $(document.getElementsByName(name)).filter(function(){
-				return !$.prop(this, 'form');
+				return this.type == 'radio' && this.name == name && $.prop(this, 'form') == form;
 			});
 		}
-		ret = ret.filter('[type="radio"]');
 	}
 	return ret;
 };
@@ -396,14 +392,13 @@ var rsubmittable = /^(?:select|textarea|input)/i;
 				if(validityState){
 					return validityState;
 				}
-				validityState 	= $.extend({}, validityPrototype);
+				validityState = $.extend({}, validityPrototype);
 				
 				if( !$.prop(elem, 'willValidate') || elem.type == 'submit' ){
 					return validityState;
 				}
-				var val 	= jElm.val(),
-					cache 	= {nodeName: elem.nodeName.toLowerCase()}
-				;
+				var val = jElm.val();
+				var cache = {nodeName: elem.nodeName.toLowerCase()};
 				
 				validityState.customError = !!(webshims.data(elem, 'customvalidationMessage'));
 				if( validityState.customError ){
@@ -430,7 +425,7 @@ var rsubmittable = /^(?:select|textarea|input)/i;
 				baseCheckValidity.unhandledInvalids = false;
 				return baseCheckValidity($(this).getNativeElement()[0], name);
 			}
-		}
+		};
 	});
 	
 	webshims.defineNodeNameProperties(nodeName, inputValidationAPI, 'prop');
@@ -441,7 +436,7 @@ webshims.defineNodeNamesBooleanProperty(['input', 'textarea', 'select'], 'requir
 	set: function(value){
 		$(this).getShadowFocusElement().attr('aria-required', !!(value)+'');
 	},
-	initAttr: Modernizr.localstorage //only if we have aria-support
+	initAttr: true
 });
 webshims.defineNodeNamesBooleanProperty(['input'], 'multiple');
 
@@ -488,21 +483,23 @@ webshims.defineNodeNameProperty('form', 'noValidate', {
 	}
 });
 
-webshims.defineNodeNamesProperty(['input', 'textarea'], 'minLength', {
-		prop: {
-			set: function(val){
-				val *= 1;
-				if(val < 0){
-					throw('INDEX_SIZE_ERR');
+['minlength', 'minLength'].forEach(function(propName){
+	webshims.defineNodeNamesProperty(['input', 'textarea'], propName, {
+			prop: {
+				set: function(val){
+					val *= 1;
+					if(val < 0){
+						throw('INDEX_SIZE_ERR');
+					}
+					this.setAttribute('minlength', val || 0);
+				},
+				get: function(){
+					var val = this.getAttribute('minlength');
+					return val == null ? -1 : (val * 1) || 0;
 				}
-				this.setAttribute('minlength', val || 0);
-			},
-			get: function(){
-				var val = this.getAttribute('minlength');
-				return val == null ? -1 : (val * 1) || 0;
 			}
-		}
-})
+	});
+});
 
 if(Modernizr.inputtypes.date && /webkit/i.test(navigator.userAgent)){
 	(function(){
@@ -606,7 +603,7 @@ webshims.addReady(function(context, contextElem){
 	
 	try {
 		if(context == document && !('form' in (document.activeElement || {}))) {
-			focusElem = $('input[autofocus], select[autofocus], textarea[autofocus]', context).eq(0).getShadowFocusElement()[0];
+			focusElem = $(context.querySelector('input[autofocus], select[autofocus], textarea[autofocus]')).eq(0).getShadowFocusElement()[0];
 			if (focusElem && focusElem.offsetHeight && focusElem.offsetWidth) {
 				focusElem.focus();
 			}
@@ -627,7 +624,7 @@ if(!Modernizr.input.list){
 				if(select[0]){
 					options = $.makeArray(select[0].options || []);
 				} else {
-					options = $('option', elem).get();
+					options = elem.getElementsByTagName('option');
 					if(options.length){
 						webshims.warn('you should wrap your option-elements for a datalist in a select element to support IE and other old browsers.');
 					}
