@@ -44,17 +44,30 @@
 <cfset oFormItemService = createObject("component", application.stCoapi.idlFormItem.packagepath) />
 
 <cfif thistag.executionMode eq "Start">
-
-	<!--- check if object exist in site tree --->
-	<cfscript>
-		oNav = createObject("component",application.types['dmNavigation'].typepath);
-		qNav = oNav.getParent(objectid=request.stObj.objectID);
-	</cfscript>
-	<cfif qNav.recordCount GT 0>
-		<cfset linkToID = qNav.parentID />
-	<cfelse>
-		<cfset linkToID = request.stObj.objectID />
-	</cfif>
+	
+	<!--- Generate FU for form action--->
+	<cftry>
+		<!--- check if object exist in site tree --->
+		<cfscript>
+			oNav = createObject("component",application.types['dmNavigation'].typepath);
+			qNav = oNav.getParent(objectid=request.stObj.objectID);
+		</cfscript>
+		<cfif qNav.recordCount GT 0>
+			<cfset linkToID = qNav.parentID />
+		<cfelse>
+			<cfset linkToID = request.stObj.objectID />
+		</cfif>
+		<!--- Set form action URL --->
+		<cfset formActionURL = application.fapi.getLink(objectID=linkToID) />
+		<cfcatch>
+			<!--- if we catch an error, try with the furl in url scope --->
+			<cfif structKeyExists(url, "furl") AND trim(url.furl) NEQ "">
+				<cfset formActionURL = url.furl />
+			<cfelseif structKeyExists(url, "objectID") AND isValid("UUID", )>
+				<cfset formActionURL = application.fapi.getLink(objectID=url.objectID) />
+			</cfif>
+		</cfcatch>
+	</cftry>
 
 	<!--- Set form action URL --->
 	<cfset formActionURL = #application.fapi.getLink(objectID=linkToID)# />
