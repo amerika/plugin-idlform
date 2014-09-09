@@ -30,7 +30,7 @@
 	<cfproperty ftSeq="2" ftFieldset="General"
 				name="type" type="string" default="textfield"
 				ftLabel="Input type" ftType="list"
-				ftlist="textfield:Text Field,textarea:Text Area,checkbox:Check Box,radiobutton:Radio Button,list:List,filefield:Attachment,statictext:Static Text,hidden:Hidden Field"
+				ftlist="textfield:Text Field,textarea:Text Area,checkbox:Check Box,radiobutton:Radio Button,list:Select (drop-down list),filefield:Attachment,statictext:Static Text,hidden:Hidden Field"
 				hint="The type of Form Item" />
 		
 	<cfproperty ftSeq="3" ftFieldset="General"
