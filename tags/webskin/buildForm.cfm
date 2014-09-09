@@ -63,14 +63,11 @@
 			<!--- if we catch an error, try with the furl in url scope --->
 			<cfif structKeyExists(url, "furl") AND trim(url.furl) NEQ "">
 				<cfset formActionURL = url.furl />
-			<cfelseif structKeyExists(url, "objectID") AND isValid("UUID", )>
+			<cfelseif structKeyExists(url, "objectID") AND isValid("UUID", url.objectID)>
 				<cfset formActionURL = application.fapi.getLink(objectID=url.objectID) />
 			</cfif>
 		</cfcatch>
 	</cftry>
-
-	<!--- Set form action URL --->
-	<cfset formActionURL = #application.fapi.getLink(objectID=linkToID)# />
 	
 	<cfif trim(attributes.class) is "">
 		<cfset attributes.class = "idlform">
