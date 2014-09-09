@@ -458,9 +458,15 @@
 					<cfcase value="list">
 						<cfoutput>
 							#labelMarkup#
-							<select id="#stObjFormItem.objectid#" <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID# tabindex="#1000+i#">
+							<select id="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.validateErrorMessage) gt 0>title="#stObjFormItem.validateErrorMessage#" x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> name="#stObjFormItem.objectid#"#thisCssID# tabindex="#1000+i#">
 						</cfoutput>
-					
+						
+						<cfif stObjFormItem.validateRequired is true>
+							<cfoutput>
+								<option value=""></option>
+							</cfoutput>
+						</cfif>
+						
 						<cfloop list="#stObjFormItem.initValue#" index="i">
 							<cfoutput>
 								<option value="#i#"<cfif initValue EQ i> selected</cfif>>#i#</option>
