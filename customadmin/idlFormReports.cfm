@@ -221,6 +221,7 @@
 		</cfoutput>
 
 		<cfif ListLen(form.list2)>
+			<cfset downloadAsExcelURL = application.fapi.getLink(view="webtopReportToExcel", type="idlFormLog") />
 			<cfset session.forExcel.lFormList2 = form.list2 />
 			<cfset useFromDate = "x" />
 			<cfset useToDate = "x" />
@@ -250,7 +251,7 @@
 			<cfoutput>
 				<h2>Report:</h2>
 				<p>Click the download button to download the report as an excel file.</p>
-				<p><input type="button" onClick="window.location.href='customadmin.cfm?plugin=idlform&module=idlFormReportToExcel.cfm'" value="Download"></p>
+				<p><input type="button" onClick="window.location.href='#downloadAsExcelURL#'" value="Download"></p>
 				<table class="table1">
 					<tr>
 						<th>Date</th>
@@ -302,7 +303,7 @@
 				<br/>
 				<cfif formlogs.recordCount GT 20>
 					<p>
-						<input type="button" onClick="window.location.href='customadmin.cfm?plugin=idlform&module=idlFormReportToExcel.cfm'" value="Download as excel file">
+						<input type="button" onClick="window.location.href='#downloadAsExcelURL#'" value="Download as excel file">
 					</p>
 				</cfif>
 			</cfoutput>
