@@ -180,17 +180,23 @@
 	<cfif ListLen(form.list2)>
 		<cfset downloadAsExcelURL = application.fapi.getLink(view="webtopReportToExcel", type="idlFormLog") />
 		<cfset session.forExcel.lFormList2 = form.list2 />
-		<cfset useFromDate = "x" />
-		<cfset useToDate = "x" />
+		<cfset useFromDate = "" />
+		<cfset useToDate = "" />
 
-		<cfif listLen(form.fromDate, ".") is 3 and isNumeric(listGetAt(form.fromDate, 1, ".")) and isNumeric(listGetAt(form.fromDate, 2, ".")) and isNumeric(listGetAt(form.fromDate, 3, "."))>
-			<cfset useFromDate = createDate(listGetAt(form.fromDate, 3, "."), listGetAt(form.fromDate, 2, "."), listGetAt(form.fromDate, 1, ".")) /> 
-		</cfif>
-
-		<cfif listLen(form.toDate, ".") is 3 and isNumeric(listGetAt(form.toDate, 1, ".")) and isNumeric(listGetAt(form.toDate, 2, ".")) and isNumeric(listGetAt(form.toDate, 3, "."))>
-			<cfset useToDate = createDate(listGetAt(form.toDate, 3, "."), listGetAt(form.toDate, 2, "."), listGetAt(form.toDate, 1, ".")) /> 
-		</cfif>
-
+		<cftry>
+			<cfif listLen(form.fromDate, "-") is 3 and isNumeric(listGetAt(form.fromDate, 1, "-")) and isNumeric(listGetAt(form.fromDate, 2, "-")) and isNumeric(listGetAt(form.fromDate, 3, "-"))>
+				<cfset useFromDate = createDate(listGetAt(form.fromDate, 1, "-"), listGetAt(form.fromDate, 2, "-"), listGetAt(form.fromDate, 3, "-")) /> 
+			</cfif>
+			<cfcatch></cfcatch>
+		</cftry>
+		
+		<cftry>
+			<cfif listLen(form.toDate, "-") is 3 and isNumeric(listGetAt(form.toDate, 1, "-")) and isNumeric(listGetAt(form.toDate, 2, "-")) and isNumeric(listGetAt(form.toDate, 3, "-"))>
+				<cfset useToDate = createDate(listGetAt(form.toDate, 1, "-"), listGetAt(form.toDate, 2, "-"), listGetAt(form.toDate, 3, "-")) /> 
+			</cfif>
+			<cfcatch></cfcatch>
+		</cftry>
+		
 		<cfquery name="formlogs" datasource="#application.dsn#">
 			SELECT *
 			FROM idlFormLog
