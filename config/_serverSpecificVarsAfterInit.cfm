@@ -73,7 +73,7 @@ PUT PRODUCTION OR DEFAULT CODE HERE
 
 <!--- Om ingen av sjekkene går gjennom så sier vi i fra om dette --->
 
-<cfif application.fapi.isLoggedIn() AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
+<cfif application.fapi.isLoggedIn() AND application.fapi.hasRole('sysadmin') AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
 	<skin:bubble title="IDLmedia Form Plugin" sticky="true">
 		<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an virtual directory in your webserver or copy the js and css into the project for the idlform plugin to work.")#</cfoutput>
 		<!--- http://afarkas.github.com/webshim/ --->

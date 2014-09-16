@@ -73,51 +73,53 @@
 		<cfset attributes.class = "idlform">
 	</cfif>
 
-	<cfif application.fapi.isLoggedIn() AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
+	<cfif application.fapi.isLoggedIn() AND application.fapi.hasRole('sysadmin') AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
 		<skin:bubble title="IDLmedia Form Plugin" sticky="true">
 			<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an virtual directory in your webserver or copy the js and css into the project for the idlform plugin to work.")#</cfoutput>
 		</skin:bubble>
 	<cfelse>
-		<skin:loadJs id="jquery" />
-		<skin:loadJs id="uniformJS" />
-		<skin:loadCss id="uniformCSS" />
-		<skin:loadCss id="uniformTheme" />
-		<skin:loadJs id="modernizrJS" />
-		<skin:loadJs id="webshimJS" />
-		<skin:loadCss id="idlformCSS" />
-		<skin:onReady id="idlFormInline">
-			<cfoutput>
-				$j("form.idlform select, form.idlform input, form.idlform button, form.idlform textarea").uniform();
-				$j("form.idlform input:file").uniform({fileBtnText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@label","Choose")#&hellip;'});
-				$j("form.idlform input:file").uniform({fileDefaultText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@text","No file selected")#&hellip;'});
-				$j.webshims.setOptions("waitReady",false);
-				<cfif application.idlform.bIdlFormAlias>
-					$j.webshims.setOptions("basePath", "/idlform/js/js-webshim/dev/shims/");
-				<cfelse>	
-					$j.webshims.setOptions("basePath", "/js/js-webshim/dev/shims/");
-				</cfif>
+		<cfif application.idlform.bIdlFormAlias IS true OR application.idlform.bIdlFormCopied IS true>
+			<skin:loadJs id="jquery" />
+			<skin:loadJs id="uniformJS" />
+			<skin:loadCss id="uniformCSS" />
+			<skin:loadCss id="uniformTheme" />
+			<skin:loadJs id="modernizrJS" />
+			<skin:loadJs id="webshimJS" />
+			<skin:loadCss id="idlformCSS" />
+			<skin:onReady id="idlFormInline">
+				<cfoutput>
+					$j("form.idlform select, form.idlform input, form.idlform button, form.idlform textarea").uniform();
+					$j("form.idlform input:file").uniform({fileBtnText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@label","Choose")#&hellip;'});
+					$j("form.idlform input:file").uniform({fileDefaultText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@text","No file selected")#&hellip;'});
+					$j.webshims.setOptions("waitReady",false);
+					<cfif application.idlform.bIdlFormAlias>
+						$j.webshims.setOptions("basePath", "/idlform/js/js-webshim/dev/shims/");
+					<cfelse>	
+						$j.webshims.setOptions("basePath", "/js/js-webshim/dev/shims/");
+					</cfif>
 				
-				//The following to lines can be uncomented to accomodate translations of the webshim validation error messages. But if you set validation messages on the form element in the webtop this should not be necasarry
-				// $j.webshims.activeLang('no');
-				// $j.webshims.cfg.forms.availabeLangs.push('no');
+					//The following to lines can be uncomented to accomodate translations of the webshim validation error messages. But if you set validation messages on the form element in the webtop this should not be necasarry
+					// $j.webshims.activeLang('no');
+					// $j.webshims.cfg.forms.availabeLangs.push('no');
 
-				$j.webshims.setOptions('forms', {customMessages: true});
+					$j.webshims.setOptions('forms', {customMessages: true});
 				
-				$j.webshims.polyfill();
+					$j.webshims.polyfill();
 
-				$j(function(){
-					$j('form.idlform')
-						.bind('invalid', function(e){
-							e.preventDefault();
-						})
-						.bind('firstinvalid', function(e){
-							$j.webshims.validityAlert.showFor(e.target, $j.attr(e.target, 'customValidationMessage'));
-							return false;
-						})
-					;
-				});
-			</cfoutput>
-		</skin:onReady>
+					$j(function(){
+						$j('form.idlform')
+							.bind('invalid', function(e){
+								e.preventDefault();
+							})
+							.bind('firstinvalid', function(e){
+								$j.webshims.validityAlert.showFor(e.target, $j.attr(e.target, 'customValidationMessage'));
+								return false;
+							})
+						;
+					});
+				</cfoutput>
+			</skin:onReady>
+		</cfif>
 	</cfif>
 
 	<!--- server side validation - In the future this should probably be moved to its own validate object --->
