@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <webtop>
-	<section id="idlforms" permission="MainNavContentTab" label="Form Builder" sequence="3010">
-		<subsection id="idlformssection" permission="MainNavContentTab" sidebar="custom/sidebar.cfm" label="Form Builder">
-			<menu sequence="1" id="idlformadmin" label="Form Administration">
-				<menuitem id="idlformadminlist" sequence="1" label="Form List" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlform.cfm" relatedtype="idlForm" />
-			</menu>
-			<menu sequence="10" id="idlformlog" label="Form Logs">
-				<menuitem id="idlformlogview" sequence="1" label="View Logs" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformLog.cfm" />
-			</menu>
-			<menu sequence="20" id="idlformreport" label="Form Reports">
-				<menuitem id="idlformreportcreate" sequence="1" label="Create Report" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformReports.cfm" />
-			</menu>
-		</subsection>
+	<section id="idlforms" label="Form Builder" sequence="3010">
+		<subsection sequence="1" id="idlformadminlist" label="Form List" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlform.cfm" relatedtype="idlForm" />
+		<subsection sequence="2" id="idlformreportcreate" label="Create Report" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformReports.cfm" />
+		<subsection sequence="3" id="idlformlogview" label="View Logs" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformLog.cfm" />
 	</section>
 </webtop>
