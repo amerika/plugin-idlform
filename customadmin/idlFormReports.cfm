@@ -21,6 +21,12 @@
 <!--- @@description: --->
 <!--- @@author: Trond Ulseth (trond@idl.no) --->
 
+<!--- Import tag libraries
+////////////////////////////////////////////////////////////////////////////////////////////////////// --->
+<cfimport taglib="/farcry/core/tags/webskin" prefix="skin" />
+
+<!--- Params and queries
+////////////////////////////////////////////////////////////////////////////////////////////////////// --->
 <cfparam name="form.form" default="">
 <cfparam name="form.list2" default="">
 
@@ -30,59 +36,11 @@
 	FROM idlForm
 </cfquery>
 
+<!--- Output: HTML content
+////////////////////////////////////////////////////////////////////////////////////////////////////// --->
+<admin:header title="Form report" />
+
 <cfoutput>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>IDLform report</title>
-	
-	<style type="text/css">
-	* {	
-		font-family: "Trebuchet MS", Verdana, Arial, sans-serif;
-		font-size: 12px;
-		}
-	p {margin-bottom: 20px;}
-	h2 {
-		font-size:16px;
-		}
-		
-	select.multiple {
-		width:150px;
-		}
-	
-	.table1 {
-		background-color: ##E7EDF1;
-		border-collapse: collapse;
-		}
-	.table1 th,
-	.table1 td {
-		border: solid 1px ##000000;
-		font-family: "Trebuchet MS", Verdana, Arial, sans-serif;
-		font-size: 12px;
-		padding: 5px;
-		text-align: left;
-		}
-	
-	th {
-		background-color: ##C9D7E2;
-		}
-		.dateInput {
-			width: 84px;
-		}
-	.btn {
-		padding: 10px 20px;
-		background-color: grey;
-		color: white;
-		text-decoration: none;
-		border-radius: 10px;
-	}
-	form {
-		padding: 20px 0 40px;
-		border-bottom: dotted 1px ##ccc;
-	}
-	</style>
-	
 	<script language="javascript">
 		// http://www.mattkruse.com/javascript/selectbox/index.html
 		function hasOptions(obj){if(obj!=null && obj.options!=null){return true;}return false;}
@@ -118,197 +76,197 @@
 			}
 		}
 	</script>
-</head>
-<body>
 	<h2>Step 1 - Choose form to generate report from</h2>
-	<form method="post">
+	<form method="post" class="form-inline" role="form">
 		<select name="form">
 			<option value=""> - - - Chose form to generate report from - - - </option>
 			<cfloop query="forms">
 				<option value="#forms.objectid#" <cfif form.form eq forms.objectid>selected="true"</cfif>>#forms.title#</option>
 			</cfloop>
 		</select>
-		<input type="submit" value="Step 2 -->">
+		<input type="submit" class="btn btn-primary" value="Step 2 -->">
 	</form>
+</cfoutput>
+
+<cfif Len(form.form)>
+	<cfparam name="form.fromDate" default="YYYY-MM-DD" />
+	<cfparam name="form.toDate" default="YYYY-MM-DD" />
+	<cfparam name="form.sortOrder" default="DESC" />
+
+	<cfquery name="qLogIDs" datasource="#application.dsn#">
+		SELECT DISTINCT objectid
+		FROM idlFormLog
+		WHERE formid = '#form.form#'
+	</cfquery>
+
+	<cfquery name="formlogtitles" datasource="#application.dsn#">
+		SELECT MAX(title) as title,formItemID
+		FROM idlFormLogItem
+		WHERE formlogid IN (#quotedValueList(qLogIDs.objectID)#)
+		GROUP BY formItemID
+	</cfquery>
+	<cfset session.forExcel.qFormlogtitles = formlogtitles />
+
+	<cfoutput>
+		<h2>Step 2 - Select items (and order of these) to include in report</h2>
+		<p>Click the «All &gt;&gt; button» to select all form inputs used in this form.</p>
+		<form method="post">
+			<input type="hidden" name="form" value="#form.form#">
+			<input type="hidden" name="movepattern1" value="">
+		
+			<table class="table">
+			<tr>
+				<td style="width: 240px;">
+					Available report items:<br />
+					<select class="multiple" name="list1" multiple size="10" onDblClick="moveSelectedOptions(this.form['list1'],this.form['list2'],false,this.form['movepattern1'].value)">
+						<cfloop query="formlogtitles">
+							<cfif not ListFind(form.list2,formlogtitles.formItemID)>
+								<option value="#formlogtitles.formItemID#">#formlogtitles.title#</option>
+							</cfif>
+						</cfloop>
+					</select>
+				</td>
+				<td style="padding-top: 30px">
+					<input type="button" class="btn btn-default" name="right" value="&gt;&gt;" onClick="moveSelectedOptions(this.form['list1'],this.form['list2'],false,this.form['movepattern1'].value)"><br /><br />
+					<input type="button" class="btn btn-default" name="right" value="All &gt;&gt;" onClick="moveAllOptions(this.form['list1'],this.form['list2'],false,this.form['movepattern1'].value)"><br /><br />
+					<input type="button" class="btn btn-default" name="left" value="&lt;&lt;" onClick="moveSelectedOptions(this.form['list2'],this.form['list1'],false,this['form'].movepattern1.value)"><br /><br />
+					<input type="button" class="btn btn-default" name="left" value="All &lt;&lt;" onClick="moveAllOptions(this.form['list2'],this.form['list1'],false,this.form['movepattern1'].value)">
+				</td>
+				<td style="width: 240px;">
+					Selected report items:<br />
+					<select class="multiple" name="list2" id="list2" multiple size="10" onDblClick="moveSelectedOptions(this.form['list2'],this.form['list1'],false,this.form['movepattern1'].value)">
+						<cfloop query="formlogtitles">
+							<cfif ListFind(form.list2,formlogtitles.formItemID)>
+								<option value="#formlogtitles.formItemID#">#formlogtitles.title#</option>
+							</cfif>
+						</cfloop>
+					</SELECT>
+				</td>
+				<td style="padding-top: 30px">
+					<input type="button" class="btn btn-default" value="&nbsp;Up&nbsp;" onClick="moveOptionUp(this.form['list2'])">
+					<br /><br />
+					<input type="button" class="btn btn-default" value="Down" onClick="moveOptionDown(this.form['list2'])">
+				</td>
+			</tr>
+			<tr>
+				<td colspan="4">&nbsp;</td>
+			</tr>
+			<tr>
+				<td>
+					From date: <input type="date" name="fromDate" value="#form.fromDate#" class="dateInput">
+				</td>
+				<td>
+					&nbsp;
+				</td>
+				<td>
+					To date: <input type="date" name="toDate" value="#form.toDate#" class="dateInput">
+				</td>
+				<td>
+					Sort order: <br/>
+					<select name="sortOrder">
+						<option value="DESC" <cfif form.sortOrder is "DESC">SELECTED</cfif>>Desc</option>
+						<option value="ASC" <cfif form.sortOrder is "ASC">SELECTED</cfif>>Asc</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="4">&nbsp;</td>
+			</tr>
+			</table>
+			<input type="button" class="btn btn-default" onClick="selectAll('list2',true);submit(this.form)" value="Generate report">
+		</form>
 	</cfoutput>
 
-	<cfif Len(form.form)>
-		<cfparam name="form.fromDate" default="dd.mm.yyyy" />
-		<cfparam name="form.toDate" default="dd.mm.yyyy" />
-		<cfparam name="form.sortOrder" default="DESC" />
+	<cfif ListLen(form.list2)>
+		<cfset downloadAsExcelURL = application.fapi.getLink(view="webtopReportToExcel", type="idlFormLog") />
+		<cfset session.forExcel.lFormList2 = form.list2 />
+		<cfset useFromDate = "x" />
+		<cfset useToDate = "x" />
 
-		<cfquery name="qLogIDs" datasource="#application.dsn#">
-			SELECT DISTINCT objectid
+		<cfif listLen(form.fromDate, ".") is 3 and isNumeric(listGetAt(form.fromDate, 1, ".")) and isNumeric(listGetAt(form.fromDate, 2, ".")) and isNumeric(listGetAt(form.fromDate, 3, "."))>
+			<cfset useFromDate = createDate(listGetAt(form.fromDate, 3, "."), listGetAt(form.fromDate, 2, "."), listGetAt(form.fromDate, 1, ".")) /> 
+		</cfif>
+
+		<cfif listLen(form.toDate, ".") is 3 and isNumeric(listGetAt(form.toDate, 1, ".")) and isNumeric(listGetAt(form.toDate, 2, ".")) and isNumeric(listGetAt(form.toDate, 3, "."))>
+			<cfset useToDate = createDate(listGetAt(form.toDate, 3, "."), listGetAt(form.toDate, 2, "."), listGetAt(form.toDate, 1, ".")) /> 
+		</cfif>
+
+		<cfquery name="formlogs" datasource="#application.dsn#">
+			SELECT *
 			FROM idlFormLog
 			WHERE formid = '#form.form#'
+			<cfif isValid("date", useFromDate)>
+				AND dateTimeCreated > #createODBCDate(useFromDate)#
+			</cfif>
+			<cfif isValid("date", useToDate)>
+				AND dateTimeCreated < #createODBCDate(dateAdd("d",1,useToDate))#
+			</cfif>
+			ORDER BY dateTimeCreated #form.sortOrder#
 		</cfquery>
-
-		<cfquery name="formlogtitles" datasource="#application.dsn#">
-			SELECT MAX(title) as title,formItemID
-			FROM idlFormLogItem
-			WHERE formlogid IN (#quotedValueList(qLogIDs.objectID)#)
-			GROUP BY formItemID
-		</cfquery>
-		<cfset session.forExcel.qFormlogtitles = formlogtitles />
+		<cfset session.forExcel.qFormLogs = formlogs />
 
 		<cfoutput>
-			<h2>Step 2 - Select items (and order of these) to include in report</h2>
-			<p>Click the «All &gt;&gt; button» to select all form inputs used in this form.</p>
-			<form method="post">
-				<input type="hidden" name="form" value="#form.form#">
-				<input type="hidden" name="movepattern1" value="">
-			
-				<table border="0">
+			<h2>Report:</h2>
+			<p>Click the download button to download the report as an excel file.</p>
+			<p><input type="button" class="btn btn-primary" onClick="window.location.href='#downloadAsExcelURL#'" value="Download"></p>
+			<table class="table">
 				<tr>
-					<td>
-						Available report items:<br />
-						<select class="multiple" name="list1" multiple size="10" onDblClick="moveSelectedOptions(this.form['list1'],this.form['list2'],false,this.form['movepattern1'].value)">
-							<cfloop query="formlogtitles">
-								<cfif not ListFind(form.list2,formlogtitles.formItemID)>
-									<option value="#formlogtitles.formItemID#">#formlogtitles.title#</option>
-								</cfif>
-							</cfloop>
-						</select>
-					</td>
-					<td>
-						<input type="button" name="right" value="&gt;&gt;" onClick="moveSelectedOptions(this.form['list1'],this.form['list2'],false,this.form['movepattern1'].value)"><br /><br />
-						<input type="button" name="right" value="All &gt;&gt;" onClick="moveAllOptions(this.form['list1'],this.form['list2'],false,this.form['movepattern1'].value)"><br /><br />
-						<input type="button" name="left" value="&lt;&lt;" onClick="moveSelectedOptions(this.form['list2'],this.form['list1'],false,this['form'].movepattern1.value)"><br /><br />
-						<input type="button" name="left" value="All &lt;&lt;" onClick="moveAllOptions(this.form['list2'],this.form['list1'],false,this.form['movepattern1'].value)">
-					</td>
-					<td>
-						Selected report items:<br />
-						<select class="multiple" name="list2" id="list2" multiple size="10" onDblClick="moveSelectedOptions(this.form['list2'],this.form['list1'],false,this.form['movepattern1'].value)">
-							<cfloop query="formlogtitles">
-								<cfif ListFind(form.list2,formlogtitles.formItemID)>
-									<option value="#formlogtitles.formItemID#">#formlogtitles.title#</option>
-								</cfif>
-							</cfloop>
-						</SELECT>
-					</td>
-					<td>
-					<input type="button" value="&nbsp;Up&nbsp;" onClick="moveOptionUp(this.form['list2'])">
-					<br /><br />
-					<input type="button" value="Down" onClick="moveOptionDown(this.form['list2'])">
-					</td>
-				</tr>
-				<tr>
-					<td colspan="4">&nbsp;</td>
-				</tr>
-				<tr>
-					<td>
-						From date: <input type="text" name="fromDate" value="#form.fromDate#" class="dateInput">
-					</td>
-					<td>
-						&nbsp;
-					</td>
-					<td>
-						To date: <input type="text" name="toDate" value="#form.toDate#" class="dateInput">
-					</td>
-					<td>
-						<select name="sortOrder">
-							<option value="DESC" <cfif form.sortOrder is "DESC">SELECTED</cfif>>Desc</option>
-							<option value="ASC" <cfif form.sortOrder is "ASC">SELECTED</cfif>>Asc</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="4">&nbsp;</td>
-				</tr>
-				</table>
-				<input type="button" onClick="selectAll('list2',true);submit(this.form)" value="Generate report">
-			</form>
-		</cfoutput>
-
-		<cfif ListLen(form.list2)>
-			<cfset downloadAsExcelURL = application.fapi.getLink(view="webtopReportToExcel", type="idlFormLog") />
-			<cfset session.forExcel.lFormList2 = form.list2 />
-			<cfset useFromDate = "x" />
-			<cfset useToDate = "x" />
-
-			<cfif listLen(form.fromDate, ".") is 3 and isNumeric(listGetAt(form.fromDate, 1, ".")) and isNumeric(listGetAt(form.fromDate, 2, ".")) and isNumeric(listGetAt(form.fromDate, 3, "."))>
-				<cfset useFromDate = createDate(listGetAt(form.fromDate, 3, "."), listGetAt(form.fromDate, 2, "."), listGetAt(form.fromDate, 1, ".")) /> 
-			</cfif>
-
-			<cfif listLen(form.toDate, ".") is 3 and isNumeric(listGetAt(form.toDate, 1, ".")) and isNumeric(listGetAt(form.toDate, 2, ".")) and isNumeric(listGetAt(form.toDate, 3, "."))>
-				<cfset useToDate = createDate(listGetAt(form.toDate, 3, "."), listGetAt(form.toDate, 2, "."), listGetAt(form.toDate, 1, ".")) /> 
-			</cfif>
-
-			<cfquery name="formlogs" datasource="#application.dsn#">
-				SELECT *
-				FROM idlFormLog
-				WHERE formid = '#form.form#'
-				<cfif isValid("date", useFromDate)>
-					AND dateTimeCreated > #createODBCDate(useFromDate)#
-				</cfif>
-				<cfif isValid("date", useToDate)>
-					AND dateTimeCreated < #createODBCDate(dateAdd("d",1,useToDate))#
-				</cfif>
-				ORDER BY dateTimeCreated #form.sortOrder#
-			</cfquery>
-			<cfset session.forExcel.qFormLogs = formlogs />
-	
-			<cfoutput>
-				<h2>Report:</h2>
-				<p>Click the download button to download the report as an excel file.</p>
-				<p><input type="button" onClick="window.location.href='#downloadAsExcelURL#'" value="Download"></p>
-				<table class="table1">
-					<tr>
-						<th>Date</th>
-						<cfloop list="#form.list2#" index="i">
-							<cfquery name="colName" dbtype="query">
-							SELECT title
-							FROM formlogtitles
-							WHERE formItemID = '#i#'
-							</cfquery>
-							<th>#colName.title#</th>
-						</cfloop>
-					</tr>
-			
-					<cfloop query="formlogs">
-						<cfquery name="formlogitems" datasource="#application.dsn#">
-							SELECT title, value, formItemID
-							FROM idlFormLogItem
-							WHERE formlogid = '#formlogs.objectid#'
-							AND formItemID IN(#ListQualify(form.list2,"'")#)
+					<th>Date</th>
+					<cfloop list="#form.list2#" index="i">
+						<cfquery name="colName" dbtype="query">
+						SELECT title
+						FROM formlogtitles
+						WHERE formItemID = '#i#'
 						</cfquery>
-
-						<tr>
-							<td>#lsDateFormat(formlogs.dateTimeCreated, "dd.mm.yyyy")# #timeformat(formlogs.dateTimeCreated, "HH:MM")#</td>
-							<cfloop list="#form.list2#" index="i">
-								<cfquery name="qThisValue" dbtype="query">
-									SELECT *
-									FROM formlogitems
-									WHERE formItemID = '#i#'
-								</cfquery>
-
-								<td>
-									<cfif isvalid("UUID", qThisValue.value)>
-										<a href="/#qThisValue.value#">#qThisValue.value#</a>
-									<cfelseif isvalid("URL", qThisValue.value)>
-										<a href="#qThisValue.value#">#qThisValue.value#</a>
-									<cfelseif isvalid("email", qThisValue.value)>
-										<a href="mailto:#qThisValue.value#">#qThisValue.value#</a>
-									<cfelseif FileExists(qThisValue.value)>
-										<a href="/files/#GetFileFromPath(qThisValue.value)#" target="_blank">#GetFileFromPath(qThisValue.value)#</a>
-									<cfelse>
-										#qThisValue.value#
-									</cfif>
-								</td>
-							</cfloop>
-			
-						</tr>
+						<th>#colName.title#</th>
 					</cfloop>
-				</table>
-				<br/>
-				<cfif formlogs.recordCount GT 20>
-					<p>
-						<input type="button" onClick="window.location.href='#downloadAsExcelURL#'" value="Download as excel file">
-					</p>
-				</cfif>
-			</cfoutput>
-		</cfif>
+				</tr>
+		
+				<cfloop query="formlogs">
+					<cfquery name="formlogitems" datasource="#application.dsn#">
+						SELECT title, value, formItemID
+						FROM idlFormLogItem
+						WHERE formlogid = '#formlogs.objectid#'
+						AND formItemID IN(#ListQualify(form.list2,"'")#)
+					</cfquery>
+
+					<tr>
+						<td>#lsDateFormat(formlogs.dateTimeCreated, "dd.mm.yyyy")# #timeformat(formlogs.dateTimeCreated, "HH:MM")#</td>
+						<cfloop list="#form.list2#" index="i">
+							<cfquery name="qThisValue" dbtype="query">
+								SELECT *
+								FROM formlogitems
+								WHERE formItemID = '#i#'
+							</cfquery>
+
+							<td>
+								<cfif isvalid("UUID", qThisValue.value)>
+									<a href="/#qThisValue.value#">#qThisValue.value#</a>
+								<cfelseif isvalid("URL", qThisValue.value)>
+									<a href="#qThisValue.value#">#qThisValue.value#</a>
+								<cfelseif isvalid("email", qThisValue.value)>
+									<a href="mailto:#qThisValue.value#">#qThisValue.value#</a>
+								<cfelseif FileExists(qThisValue.value)>
+									<a href="/files/#GetFileFromPath(qThisValue.value)#" target="_blank">#GetFileFromPath(qThisValue.value)#</a>
+								<cfelse>
+									#qThisValue.value#
+								</cfif>
+							</td>
+						</cfloop>
+		
+					</tr>
+				</cfloop>
+			</table>
+			<br/>
+			<cfif formlogs.recordCount GT 20>
+				<p>
+					<input type="button" class="btn btn-primary" onClick="window.location.href='#downloadAsExcelURL#'" value="Download as excel file">
+				</p>
+			</cfif>
+		</cfoutput>
 	</cfif>
-</body>
-</html>
+</cfif>
+
+<admin:footer />
+
 <cfsetting enablecfoutputonly="no" />
