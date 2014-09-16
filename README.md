@@ -9,7 +9,14 @@ With this plugin you can let users of FarCry add custom forms to their websites.
 
 No documentation for the time being, but please contact dev@amerika.no if you should have any questions.
 
-## Installation Notes for FarCry 6.0
+## Requirements
+* FarCry 7.0 or newer
+* Coldfusion 9+ (tested) or Railo 3.3+ (not tested)
+
+No documentation for the time being, but please contact dev@amerika.no if you should have any questions.
+
+
+## Installation Notes for FarCry 7.0
 
 Go to your project www folder and edit farcryConstructor.cfm, add idlform to THIS.plugins. E.g.:
 
