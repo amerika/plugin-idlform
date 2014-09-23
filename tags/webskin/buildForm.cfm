@@ -290,26 +290,19 @@
 				<cfset stObjFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
 			
 				<cfif stObjFormItem.type neq "hidden">
-				
 					<!--- Add classes --->
-					<cfsavecontent variable="fieldsetClasses">
-						<cfif trim(stObjFormItem.width) NEQ "" OR trim(stObjFormItem.class) NEQ "">
-	
-							<cfoutput> class="</cfoutput> <!--- Start class --->
-							
-								<cfoutput><cfif trim(stObjFormItem.width) EQ "">w100percent<cfelse>#trim(stObjFormItem.width)#</cfif> </cfoutput>
-							
-								<cfif trim(stObjFormItem.class) NEQ "">
-									<cfoutput>#trim(stObjFormItem.class)#</cfoutput>
-								</cfif>
-							
-							<cfoutput>" </cfoutput> <!--- End class --->
-						</cfif>
+					<cfset fieldsetClasses = "" />
+					<cfset fieldsetClasses = listAppend(fieldsetClasses, "fieldset-" & stObjFormItem.type, " ") />
+					<cfif trim(stObjFormItem.width) EQ "">
+						<cfset fieldsetClasses = listAppend(fieldsetClasses, "w100percent", " ") />
+					<cfelse>
+						<cfset fieldsetClasses = listAppend(fieldsetClasses, trim(stObjFormItem.width), " ") />
+					</cfif>
+					<cfif trim(stObjFormItem.class) NEQ "">
+						<cfset fieldsetClasses = listAppend(fieldsetClasses, trim(stObjFormItem.class), " ") />
+					</cfif>
 					
-					</cfsavecontent>
-					
-					<cfoutput>#"<fieldset" & fieldsetClasses & ">"#</cfoutput>
-				
+					<cfoutput><fieldset class="#fieldsetClasses#"></cfoutput>
 				</cfif>
 			
 				<!--- create validation rule --->
