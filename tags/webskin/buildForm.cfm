@@ -124,23 +124,20 @@
 
 	<!--- server side validation - In the future this should probably be moved to its own validate object --->
 	<cfif StructKeyExists(form,"submitidlform")>
-
-			<!--- Loop through the form items --->
-			<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
-				
+		<!--- Loop through the form items --->
+		<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
+			<cftry>
 				<!--- Get info about this item --->
-				<cfset stObjFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i])>
-
+				<cfset stObjFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i]) >
 				<cfset isValid = true>
-				
+			
 				<!--- if the form is of type textfield or textarea we do the following validation --->
 				<cfif stObjFormItem.type is "textfield" or stObjFormItem.type is "textarea">
-					
 					<!--- check if it is required --->
 					<cfif (stObjFormItem.validateRequired is 1) and (len(trim(form[stObjFormItem.objectID])) is 0)>
 						<cfset isValid = false>
 					</cfif>
-					
+				
 					<!--- validate digits --->
 					<cfif stObjFormItem.validateType is "digits" or stObjFormItem.validateType is "number">
 						<cfif (stObjFormItem.validateRequired is 0 AND len(trim(form[stObjFormItem.objectID])) GT 0)
@@ -168,38 +165,38 @@
 							</cfif>
 						</cfif>
 					</cfif>
-					
+				
 					<cfswitch expression="#stObjFormItem.validateType#">
 						<cfcase value="digits">
 							<cfif (not IsValid("integer",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("integer",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
-						
+					
 						<cfcase value="number">
 							<cfif (not IsValid("numeric",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("numeric",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
-						
+					
 						<cfcase value="date">
 							<cfif (not IsValid("eurodate",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("eurodate",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
-						
+					
 						<cfcase value="creditcard">
 							<cfif (not IsValid("creditcard",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("creditcard",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
-						
+					
 						<cfcase value="url">
 							<cfif (not IsValid("URL",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("URL",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
 							</cfif>
 						</cfcase>
-						
+					
 						<cfcase value="email">
 							<cfif (not IsValid("email",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("email",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
 								<cfset isValid = false>
@@ -207,19 +204,20 @@
 						</cfcase>
 					</cfswitch>
 				</cfif>
-				
+			
 				<!--- if the form is of type checkbox or radiobutton we do the following validation --->
 				<cfif stObjFormItem.type is "checkbox" or stObjFormItem.type is "radiobutton">
 					<!--- No validation here - at least for now --->
 				</cfif>
-				
+			
 				<cfif NOT isValid>
 					<!--- add info to the error message --->
 					<cfset errorMessage = Insert("<span class='label'>#stObjFormItem.label#:</span> <span class='errortext'>#stObjFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
 				</cfif>
-				
-			</cfloop>
 			
+				<cfcatch></cfcatch>
+		</cftry>
+	</cfloop>
 	</cfif>
 	
 	<!--- check if form is submitted and validation passed --->
@@ -384,30 +382,22 @@
 				</cfif>
 			
 				<!--- Set initial value or if the form has been submitet set the initial value to form item value --->
-				<cfif StructKeyExists(form, "#stObjFormItem.objectid#")>
-					<cfset initValue = form[stObjFormItem.objectid] />
+				<cfif structKeyExists(form, stObjFormItem.objectid)>
+					<cfset thisvalue = form[stObjFormItem.objectid] />
+				<cfelseif left(stObjFormItem.initValue, "1") is "##" and right(stObjFormItem.initValue, "1") is "##">
+					<cfset thisvalue = xmlformat(Evaluate(stObjFormItem.initValue)) />
 				<cfelse>
-					<cfset initValue = stObjFormItem.initValue />
+					<cfset thisvalue = stObjFormItem.initValue />
 				</cfif>
 			
 				<cfswitch expression="#stObjFormItem.type#">
 					<cfcase value="textfield">
-						<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
-							<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
-						<cfelse>
-							<cfset thisvalue = stObjFormItem.initValue>
-						</cfif>
 						 <cfoutput>
 							#labelMarkup#
 							<input id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> type="text" class="text" value="#thisvalue#"#thisCssID# tabindex="#1000+i#" />
 						</cfoutput>
 					</cfcase>
 					<cfcase value="textarea">
-						<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
-							<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
-						<cfelse>
-							<cfset thisvalue = stObjFormItem.initValue>
-						</cfif>
 						<cfoutput>
 							#labelMarkup#
 							<textarea id="#stObjFormItem.objectid#" name="#stObjFormItem.objectid#" #validationRule# <cfif trim(stObjFormItem.placeholder) gt 0>placeholder="#stObjFormItem.placeholder#"</cfif> <cfif trim(stObjFormItem.validateErrorMessage) gt 0>x-moz-errormessage="#stObjFormItem.validateErrorMessage#"</cfif> wrap="virtual" class="uniform"#thisCssID# tabindex="#1000+i#">#thisvalue#</textarea>
@@ -464,7 +454,7 @@
 						
 						<cfloop list="#stObjFormItem.initValue#" index="i">
 							<cfoutput>
-								<option value="#i#"<cfif initValue EQ i> selected</cfif>>#i#</option>
+								<option value="#i#"<cfif thisvalue EQ i> selected</cfif>>#i#</option>
 							</cfoutput>
 						</cfloop>
 					
@@ -488,6 +478,7 @@
 					<cfcase value="hidden">
 						<cfoutput>
 							#labelMarkup#
+							<!--- Hidden fields should never be changed by form scope --->
 							<cfif Left(stObjFormItem.initValue, "1") is "##" and Right(stObjFormItem.initValue, "1") is "##">
 								<cfset thisvalue = #xmlformat(Evaluate(stObjFormItem.initValue))#>
 							<cfelse>
