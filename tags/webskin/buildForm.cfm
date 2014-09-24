@@ -128,14 +128,14 @@
 		<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
 			<cftry>
 				<!--- Get info about this item --->
-				<cfset stObjFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i]) >
-				<cfset isValid = true>
+				<cfset stObjFormItem = oFormItemService.getData(objectID=attributes.aFormItems[i]) />
+				<cfset isValid = true />
 			
 				<!--- if the form is of type textfield or textarea we do the following validation --->
 				<cfif stObjFormItem.type is "textfield" or stObjFormItem.type is "textarea">
 					<!--- check if it is required --->
 					<cfif (stObjFormItem.validateRequired is 1) and (len(trim(form[stObjFormItem.objectID])) is 0)>
-						<cfset isValid = false>
+						<cfset isValid = false />
 					</cfif>
 				
 					<!--- validate digits --->
@@ -144,24 +144,24 @@
 						   OR (stObjFormItem.validateRequired is 1)>
 							<!--- check if it has a minimum value --->
 							<cfif (stObjFormItem.validateMinLength gt form[stObjFormItem.objectID] AND stObjFormItem.validateMinLength NEQ 0) AND IsNumeric(form[stObjFormItem.objectID])>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 							<!--- check if it has a maximum value --->
 							<cfif (stObjFormItem.validateMaxLength lt form[stObjFormItem.objectID] AND stObjFormItem.validateMaxLength NEQ 0) AND IsNumeric(form[stObjFormItem.objectID])>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 						</cfif>
 					<cfelse>
-					<!--- validate string lengths --->
+						<!--- validate string lengths --->
 						<cfif (stObjFormItem.validateRequired is 0 AND len(trim(form[stObjFormItem.objectID])) GT 0)
 						   OR (stObjFormItem.validateRequired is 1)>
 							<!--- check if it has a minimum length --->
 							<cfif IsNumeric(stObjFormItem.validateMinLength) and stObjFormItem.validateMinLength gt len(trim(form[stObjFormItem.objectID]))>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 							<!--- check if it has a maximum length --->
 							<cfif IsNumeric(stObjFormItem.validateMaxLength) and stObjFormItem.validateMaxLength lt len(trim(form[stObjFormItem.objectID])) AND stObjFormItem.validateMaxLength NEQ 0>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 						</cfif>
 					</cfif>
@@ -169,37 +169,32 @@
 					<cfswitch expression="#stObjFormItem.validateType#">
 						<cfcase value="digits">
 							<cfif (not IsValid("integer",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("integer",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 						</cfcase>
-					
 						<cfcase value="number">
 							<cfif (not IsValid("numeric",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("numeric",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 						</cfcase>
-					
 						<cfcase value="date">
 							<cfif (not IsValid("eurodate",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("eurodate",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 						</cfcase>
-					
 						<cfcase value="creditcard">
 							<cfif (not IsValid("creditcard",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("creditcard",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 						</cfcase>
-					
 						<cfcase value="url">
 							<cfif (not IsValid("URL",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("URL",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 						</cfcase>
-					
 						<cfcase value="email">
 							<cfif (not IsValid("email",form[stObjFormItem.objectID]) AND stObjFormItem.validateRequired is 1) OR (not IsValid("email",form[stObjFormItem.objectID]) AND len(trim(form[stObjFormItem.objectID])) GT 0)>
-								<cfset isValid = false>
+								<cfset isValid = false />
 							</cfif>
 						</cfcase>
 					</cfswitch>
@@ -212,12 +207,16 @@
 			
 				<cfif NOT isValid>
 					<!--- add info to the error message --->
-					<cfset errorMessage = Insert("<span class='label'>#stObjFormItem.label#:</span> <span class='errortext'>#stObjFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage))>
+					<cfset errorMessage = Insert("<span class='label'>#stObjFormItem.label#:</span> <span class='errortext'>#stObjFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage)) />
 				</cfif>
 			
-				<cfcatch></cfcatch>
-		</cftry>
-	</cfloop>
+				<cfcatch>
+					<cfif stObjFormItem.validateRequired IS 1>
+						<cfset errorMessage = Insert("<span class='label'>#stObjFormItem.label#:</span> <span class='errortext'>#stObjFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage)) />
+					</cfif>
+				</cfcatch>
+			</cftry>
+		</cfloop>
 	</cfif>
 	
 	<!--- check if form is submitted and validation passed --->
