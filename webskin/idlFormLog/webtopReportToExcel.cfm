@@ -87,7 +87,16 @@
 	</cfscript>
 </cfloop>
 
-<cfheader name="Content-Disposition" value="attachment; filename=#filename#">
-<cfcontent type="application/msexcel" variable="#spreadSheetReadBinary(theSheet)#" reset="true">
+<cffile action="write" output="#spreadSheetReadBinary(theSheet)#" file="#application.path.defaultFilePath#/#filename#">
+<cffile action="readBinary" file="#application.path.defaultFilePath#/#filename#" variable="fileRes" />
+<cflocation url="/files/#filename#" addtoken="false" />
+
+<!--- <cftry>
+	<cfheader name="Content-Disposition" value="attachment; filename=#filename#">
+	<cfcontent type="application/msexcel" variable="#fileRes#" reset="true">
+	<cfcatch>
+		<cfdump var="#cfcatch#" />
+	</cfcatch>
+</cftry> --->
 
 <cfsetting enablecfoutputonly="false" />
