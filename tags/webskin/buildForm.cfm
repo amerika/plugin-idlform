@@ -117,6 +117,59 @@
 							})
 						;
 					});
+					$j("form.idlform").submit(function(evt) {
+						var $btn = $j('form.idlform input:submit'),
+							$wrapper = $btn.parent(),
+							$uniformWrapper = $wrapper.parents('.button'),
+							btnMarkup = getOuterHTML($btn[0]),
+							defaultText = $btn.val(),
+							newText = defaultText,
+							animInterval,
+							nFrame = 0;
+							
+						if($uniformWrapper.hasClass('disabled') === true) {
+							evt.preventDefault();
+						} else {
+							$uniformWrapper.addClass('disabled');
+							setTimeout(function () {
+								$btn.prop('disabled', true);
+							}, 50);
+				
+							setTimeout(function () {
+								$uniformWrapper.removeClass('disabled');
+								$wrapper.text(defaultText).append(btnMarkup);
+								$btn.prop('disabled', false);
+								clearInterval(animInterval);
+							}, 3000);
+				
+							animInterval = setInterval(function () {
+								newText = newText + '.';
+							
+								nFrame++;
+							
+								if (nFrame > 3) {
+									newText = defaultText;
+									nFrame = 0;
+								}
+								$wrapper.text(newText).append(btnMarkup);
+								$btn.data('nFrame', nFrame);
+							}, 250);
+						}
+						function getOuterHTML(el) {
+							var wrapper = '';
+							if(el) {
+								var inner = el.innerHTML;
+								var wrapper = '<' + el.tagName;
+
+								for(var i = 0; i < el.attributes.length; i++) {
+									wrapper += ' ' + el.attributes[i].nodeName + '="';
+									wrapper += el.attributes[i].nodeValue + '"';
+								}
+								wrapper += '>' + inner + '</' + el.tagName + '>';
+							}
+							return wrapper;
+						}
+					});
 				</cfoutput>
 			</skin:onReady>
 		</cfif>
