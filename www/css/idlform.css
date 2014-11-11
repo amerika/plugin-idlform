@@ -120,6 +120,10 @@ form.idlform input[type='radio'].form-ui-invalid {
     opacity: 0 !important;
 }
 
+form.idlform input.submit {
+	width: 100%;
+}
+
 .clear {display:block !important; clear: both; height:1px; overflow: hidden;}
 
 
