@@ -1,4 +1,4 @@
-<cfsetting enablecfoutputonly="true" />
+﻿<cfsetting enablecfoutputonly="true" />
 <cfprocessingdirective pageencoding="utf-8" />
 <!--- @@Copyright: Copyright (c) 2010 IDLmedia AS. All rights reserved. --->
 <!--- @@License:
@@ -18,7 +18,7 @@
 	along with FarCry Form Builder Plugin.  If not, see <http://www.gnu.org/licenses/>.
 --->
 
-<!--- @@displayname: --->
+<!--- @@displayname: displayFormListStandard --->
 <!--- @@description: --->
 <!--- @@author: Jørgen M. Skogås on 2010-10-27 --->
 
@@ -29,7 +29,7 @@
 <cfset oForm = createObject("component", "#application.stcoapi.idlform.packagepath#") />
 
 <!--- get forms --->
-<cfset qForms = oForm.getMultipleByQuery() />
+<cfset qForms = application.fapi.getContentObjects('idlform') />
 
 <!--- Render Output
 //////////////////////////////////////////////////////////////////////////////////////////////////////// --->

@@ -1,4 +1,4 @@
-<cfsetting enablecfoutputonly="true" />
+﻿<cfsetting enablecfoutputonly="true" />
 <!--- @@Copyright: Copyright (c) 2010 IDLmedia AS. All rights reserved. --->
 <!--- @@License:
 	This file is part of FarCry Form Builder Plugin.
@@ -17,7 +17,7 @@
 	along with FarCry Form Builder Plugin.  If not, see <http://www.gnu.org/licenses/>.
 --->
 
-<!--- @@displayname: --->
+<!--- @@displayname: Standard teaser --->
 <!--- @@description: --->
 <!--- @@author: Jørgen M. Skogås on 2010-10-27 --->
 
