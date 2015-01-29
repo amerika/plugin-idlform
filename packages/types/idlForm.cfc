@@ -26,17 +26,7 @@
 	<cfproperty ftseq="1" ftWizardStep="General" ftFieldset="Form details"
 				name="title" type="string" required="true" default=""
 				ftlabel="Formtitle" ftValidation="required" />
-
-	<cfproperty ftseq="2" ftWizardStep="General" ftFieldset="Form details"
-				name="formheader" type="longchar" required="false" default="Please fill in the form below:"
-				ftlabel="Introductory text"
-				hint="Description / Introductory text for the form" />
-
-	<cfproperty ftseq="3" ftWizardStep="General" ftFieldset="Form details"
-				name="sendt" type="longchar" required="false" default="Thank you!"
-				ftlabel="Form submited text"
-				hint="Text to display when form is submitted" />
-
+				
 	<cfproperty ftseq="4" ftWizardStep="General" ftFieldset="Form details"
 				name="submittext" type="string" required="true" default="Send"
 				ftlabel="Text for the submit button"
@@ -61,9 +51,18 @@
 				ftlabel="Reciever label"
 				ftHint="Customize the choose reciever label here. Leave it blank to use the default: Select reciever." />
 				
+
+	<cfproperty ftseq="20" ftWizardStep="Form text" ftFieldset="Form details"
+				name="formheader" type="longchar" required="false" default="Please fill in the form below:"
+				ftlabel="Introductory text" ftType="richtext" ftRichtextConfig="getConfig" />
+
+	<cfproperty ftseq="21" ftWizardStep="Form text" ftFieldset="Form details"
+				name="sendt" type="longchar" required="false" default="Thank you!"
+				ftlabel="Form submited text" ftType="richtext" ftRichtextConfig="getConfig" />
+				
 	<!--- // Form items
 	----------------------------------------------------------------->
-	<cfproperty ftseq="20" ftWizardStep="Form items" ftFieldset="Form items"
+	<cfproperty ftseq="30" ftWizardStep="Form items" ftFieldset="Form items"
 				name="aFormItems" type="array" required="false" default=""
 				ftlabel="Selected Form Items" ftjoin="idlFormItem"
 				ftAllowAttach="false" ftAllowSelect="false" ftAllowAdd="true" ftAllowEdit="true" ftRemoveType="detach"
@@ -266,6 +265,27 @@
 		</cfif>
 		
 		<cfreturn retList />
+	</cffunction>
+	
+	<cffunction name="getConfig" access="public" output="false" returntype="string" hint="This will return the configuration that will be used by the richtext field">
+		<cfset var configJS = "" />
+		
+		<cfsavecontent variable="configJS">
+			<cfoutput>			
+				plugins : "link_farcry,insertdatetime,contextmenu,paste,directionality,visualchars,nonbreaking,charmap",
+				menubar : false,
+				toolbar : "undo redo | cut copy paste pastetext | formatselect | bold italic | bullist numlist | link",
+				valid_elements: "strong/b,em/i,a[href|target],br,p,h2,h3,ul,ol,li",
+				block_formats: "Paragraph=p;Header 2=h2;Header 3=h3",
+				content_css : "/css/format.css",
+				remove_linebreaks : false,
+				forced_root_block : 'p',
+				relative_urls : false,
+				entity_encoding : 'raw'
+			</cfoutput>
+		</cfsavecontent>
+		
+		<cfreturn configJS />
 	</cffunction>
 
 </cfcomponent>
