@@ -25,8 +25,7 @@
 	----------------------------------------------------------------->
 	<cfproperty ftseq="1" ftWizardStep="General" ftFieldset="Form details"
 				name="title" type="string" required="true" default=""
-				ftlabel="Formtitle" ftValidation="required"
-				hint="Form title" />
+				ftlabel="Formtitle" ftValidation="required" />
 
 	<cfproperty ftseq="2" ftWizardStep="General" ftFieldset="Form details"
 				name="formheader" type="longchar" required="false" default="Please fill in the form below:"
@@ -50,13 +49,17 @@
 	<cfproperty ftseq="12" ftWizardStep="General" ftFieldset="Sender and receivers"
 				name="aReceiverIDs" type="array" required="false" default=""
 				ftlabel="Receivers (e-mail)" ftJoin="idlFormReceiver" ftAllowEdit="true"
-				ftHint="Bruk komma ved flere e-postadresser: eks: post@amerika.no, jorgen@amerika.no"
 				ftValidation="required" />
 				
-	<cfproperty ftseq="13" ftWizardStep="General" ftFieldset="Sender and receivers"
-				name="senderOption" type="string" required="true" default="all"
-				ftlabel="Sender options" ftType="list" ftList="all:Send to all,list:Display as list"
-				ftValidation="required" ftHint="If «Display as list» is choosen, it will display as an select in top of the form." />
+	<cfproperty ftseq="13" ftWizardStep="General" ftFieldset="Sender and receivers (advanced)"
+				name="recieverOption" type="string" required="true" default="all"
+				ftlabel="Receiver options" ftType="list" ftList="all:All recievers will recieve,list:User select the receiver"
+				ftValidation="required" ftHint="If the option «User select the receiver» is choosen, it will display an select in top of the form." />
+				
+	<cfproperty ftseq="14" ftWizardStep="General" ftFieldset="Sender and receivers (advanced)"
+				name="userSelectRecieverLabel" type="string" required="false" default=""
+				ftlabel="Reciever label"
+				ftHint="Customize the choose reciever label here. Leave it blank to use the default: Select reciever." />
 				
 	<!--- // Form items
 	----------------------------------------------------------------->
@@ -115,7 +118,7 @@
 		</cfloop>
 		
 		<!--- Get receivers --->
-		<cfif stObj.senderOption IS "all" AND structKeyExists(stObj, "aReceiverIDs") AND arrayLen(stObj.aReceiverIDs) GT 0>
+		<cfif stObj.recieverOption IS "all" AND structKeyExists(stObj, "aReceiverIDs") AND arrayLen(stObj.aReceiverIDs) GT 0>
 			<cfset stObj.receiver = "" />
 			<cfloop index="i" to="#arrayLen(stObj.aReceiverIDs)#" from="1">
 				<cfset stObj.receiver = listAppend(stObj.receiver, application.fapi.getContentObject(objectID=stObj.aReceiverIDs[i]).email, ",") />
@@ -125,10 +128,7 @@
 		<!--- Get selected receiver if exists --->
 		<cfset formNameReceiver = 'recievers#replace(arguments.objectid, "-", "", "ALL")#' />
 		<cfif structKeyExists(arguments.formData, '#formNameReceiver#')>
-			<!--- TODO Fjern --->
-			<cfmail to="jorgen@amerika.no" from="noreply@amerika.no" subject="test" type="html">
-				<cfset stObj.receiver = application.fapi.getContentObject(objectid=arguments.formData['#formNameReceiver#']).email />
-			</cfmail>
+			<cfset stObj.receiver = application.fapi.getContentObject(objectid=arguments.formData['#formNameReceiver#']).email />
 		</cfif>
 		
 		<!--- Log form --->

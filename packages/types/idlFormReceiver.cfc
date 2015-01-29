@@ -21,11 +21,12 @@
 <cfcomponent name="E-mail receivers (idlForm)" displayname="E-mail receivers (idlForm)" extends="farcry.core.packages.types.types">
 
 	<cfproperty ftSeq="1" ftFieldset="Receivers info"
-				name="label" type="string" required="true" default="" bLabel="true"
+				name="recieverName" type="string" required="true" default="" bLabel="true"
 				ftLabel="Receiver name" ftValidation="required" />
 				
 	<cfproperty ftSeq="1" ftFieldset="Receivers info"
 				name="email" type="string" required="true" default=""
-				ftLabel="Receiver e-mail" ftValidation="required email" />
+				ftLabel="Receiver e-mail" ftValidation="required"
+				ftHint="Separate multiple receivers with comma, eg: post@example.com, jorgen@example.com" />
 
 </cfcomponent>

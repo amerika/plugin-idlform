@@ -45,7 +45,7 @@
 <cfset stForm = application.fapi.getContentObject(objectID=attributes.objectID) />
 <cfset bSelectReciever = false />
 <cfset recieverFormID = "" />
-<cfif structKeyExists(stForm, "aReceiverIDs") AND arrayLen(stForm.aReceiverIDs) GT 1 AND stForm.senderOption IS "list">
+<cfif structKeyExists(stForm, "aReceiverIDs") AND arrayLen(stForm.aReceiverIDs) GT 1 AND stForm.recieverOption IS "list">
 	<cfset bSelectReciever = true />
 	<cfset recieverFormID = "recievers" & replace(stForm.objectID, "-", "", "ALL") />
 </cfif>
@@ -341,11 +341,16 @@
 		
 		<cfsavecontent variable="tagoutput">
 			<!--- output recievers --->
+			<cfif trim(stForm.userSelectRecieverLabel) NEQ "">
+				<cfset userSelectRecieverLabelText = stForm.userSelectRecieverLabel />
+			<cfelse>
+				<cfset userSelectRecieverLabelText = application.rb.getResource("idlform.buildform.messages.userSelectRecieverLabelText@text","Select reciever") />
+			</cfif>
 			
 			<cfif bSelectReciever>
 				<cfoutput>
 					<fieldset class="fieldset-textfield w100percent">
-						<label for="#recieverFormID#" class="textfield">Velg mottaker</label>
+						<label for="#recieverFormID#" class="textfield">#userSelectRecieverLabelText#</label>
 						<select id="#recieverFormID#" name="#recieverFormID#">
 							</cfoutput>
 						
