@@ -24,38 +24,44 @@
 	<!--- // Standard type properties
 	----------------------------------------------------------------->
 	<cfproperty ftseq="1" ftWizardStep="General" ftFieldset="Form details"
-				name="title" type="string" required="yes" default=""
+				name="title" type="string" required="true" default=""
 				ftlabel="Formtitle" ftValidation="required"
 				hint="Form title" />
 
 	<cfproperty ftseq="2" ftWizardStep="General" ftFieldset="Form details"
-				name="formheader" type="longchar" required="no" default="Please fill in the form below:"
+				name="formheader" type="longchar" required="false" default="Please fill in the form below:"
 				ftlabel="Introductory text"
 				hint="Description / Introductory text for the form" />
 
 	<cfproperty ftseq="3" ftWizardStep="General" ftFieldset="Form details"
-				name="sendt" type="longchar" required="no" default="Thank you!"
+				name="sendt" type="longchar" required="false" default="Thank you!"
 				ftlabel="Form submited text"
 				hint="Text to display when form is submitted" />
 
 	<cfproperty ftseq="4" ftWizardStep="General" ftFieldset="Form details"
-				name="submittext" type="string" required="yes" default="Send"
+				name="submittext" type="string" required="true" default="Send"
 				ftlabel="Text for the submit button"
 				hint="Text for the submit button" />
 				
-	<cfproperty ftseq="11" ftWizardStep="General" ftFieldset="Form details"
-				name="sender" type="string" required="yes" default=""
+	<cfproperty ftseq="11" ftWizardStep="General" ftFieldset="Sender and receivers"
+				name="sender" type="string" required="true" default=""
 				ftlabel="Sender (e-mail)" ftValidation="required email" />
 				
-	<cfproperty ftseq="12" ftWizardStep="General" ftFieldset="Form details"
-				name="receiver" type="string" required="yes" default=""
-				ftlabel="Receiver (e-mail)" ftValidation="required"
-				ftHint="Bruk komma ved flere e-postadresser: eks: post@amerika.no, jorgen@amerika.no" />
-
+	<cfproperty ftseq="12" ftWizardStep="General" ftFieldset="Sender and receivers"
+				name="aReceiverIDs" type="array" required="false" default=""
+				ftlabel="Receivers (e-mail)" ftJoin="idlFormReceiver" ftAllowEdit="true"
+				ftHint="Bruk komma ved flere e-postadresser: eks: post@amerika.no, jorgen@amerika.no"
+				ftValidation="required" />
+				
+	<cfproperty ftseq="13" ftWizardStep="General" ftFieldset="Sender and receivers"
+				name="senderOption" type="string" required="true" default="all"
+				ftlabel="Sender options" ftType="list" ftList="all:Send to all,list:Display as list"
+				ftValidation="required" ftHint="If «Display as list» is choosen, it will display as an select in top of the form." />
+				
 	<!--- // Form items
 	----------------------------------------------------------------->
 	<cfproperty ftseq="20" ftWizardStep="Form items" ftFieldset="Form items"
-				name="aFormItems" type="array" required="no" default=""
+				name="aFormItems" type="array" required="false" default=""
 				ftlabel="Selected Form Items" ftjoin="idlFormItem"
 				ftAllowAttach="false" ftAllowSelect="false" ftAllowAdd="true" ftAllowEdit="true" ftRemoveType="detach"
 				hint="Holds objects to be displayed at this particular node." />
@@ -63,7 +69,7 @@
 	<!--- // Advanced type properties
 	----------------------------------------------------------------->
 	<cfproperty ftseq="50" ftWizardStep="Advanced" ftFieldset="Confirmation email"
-				name="confirmationFormItemID" type="UUID" required="no" default=""
+				name="confirmationFormItemID" type="UUID" required="false" default=""
 				ftlabel="E-mail field" ftType="list" ftRenderType="dropdown" ftSelectMultiple="false"
 				ftListData="getConfirmationList"
 				ftHint="Hint: Only form items with validation type email are listed here." />
@@ -71,15 +77,21 @@
 	<!--- Hidden
 	----------------------------------------------------------------->
 	<cfproperty ftseq="" ftWizardStep="" ftFieldset=""
-				name="displayMethod" type="string" required="yes" default="displayPageStandard"
+				name="displayMethod" type="string" required="true" default="displayPageStandard"
 				ftlabel="Form Template" fttype="webskin" ftprefix="displayPage"
 				hint="Display method to render this HTML object with." />
+				
+	<!--- Deprecated
+	----------------------------------------------------------------->
+	<cfproperty name="receiver" type="string" required="true" default=""
+				ftlabel="Receiver (e-mail)" ftValidation="required"
+				ftHint="Separate multiple receivers with comma, eg: post@example.com, jorgen@example.com" />
 
 	<!--- // Methods
 	----------------------------------------------------------------->
 	<cffunction name="submit" access="public" output="false" returntype="struct">
-		<cfargument name="objectid" required="yes" type="uuid" />
-		<cfargument name="formData" required="yes" type="struct" />
+		<cfargument name="objectid" required="true" type="uuid" hint="idlForm objectID" />
+		<cfargument name="formData" required="true" type="struct" />
 		
 		<!--- getData for object --->
 		<cfset var stObj = this.getData(arguments.objectid) />
@@ -102,10 +114,27 @@
 			</cfif>
 		</cfloop>
 		
-		<!--- log --->
+		<!--- Get receivers --->
+		<cfif stObj.senderOption IS "all" AND structKeyExists(stObj, "aReceiverIDs") AND arrayLen(stObj.aReceiverIDs) GT 0>
+			<cfset stObj.receiver = "" />
+			<cfloop index="i" to="#arrayLen(stObj.aReceiverIDs)#" from="1">
+				<cfset stObj.receiver = listAppend(stObj.receiver, application.fapi.getContentObject(objectID=stObj.aReceiverIDs[i]).email, ",") />
+			</cfloop>
+		</cfif>
+		
+		<!--- Get selected receiver if exists --->
+		<cfset formNameReceiver = 'recievers#replace(arguments.objectid, "-", "", "ALL")#' />
+		<cfif structKeyExists(arguments.formData, '#formNameReceiver#')>
+			<!--- TODO Fjern --->
+			<cfmail to="jorgen@amerika.no" from="noreply@amerika.no" subject="test" type="html">
+				<cfset stObj.receiver = application.fapi.getContentObject(objectid=arguments.formData['#formNameReceiver#']).email />
+			</cfmail>
+		</cfif>
+		
+		<!--- Log form --->
 		<cfset formLogID = createObject("component", application.stCoapi.idlFormLog.packagePath).createLog(stObj=stObj) />
 		
-		<!--- log items --->
+		<!--- Log form items --->
 		<cfset saveLogItems = createObject("component", application.stCoapi.idlFormLogItem.packagePath).createLogItems(stObj=stObj,formData=arguments.formData,uploadfile=#uploadfile#,formLogID=#formLogID#) />
 		
 		<!--- invoke method to send an email with the submited data --->
@@ -124,10 +153,10 @@
 	</cffunction>
 	
 	<cffunction name="sendMail" access="private" output="false" returntype="struct">
-		<cfargument name="objectid" required="yes" type="uuid">
-		<cfargument name="formData" required="yes" type="struct">
-		<cfargument name="stObj" required="yes" type="struct">
-		<cfargument name="uploadfile" required="yes" type="struct">
+		<cfargument name="objectid" required="true" type="uuid" hint="idlForm objectID">
+		<cfargument name="formData" required="true" type="struct">
+		<cfargument name="stObj" required="true" type="struct">
+		<cfargument name="uploadfile" required="true" type="struct">
 		
 		<!--- set the sender email address --->
 		<cfset var cfMailFrom = arguments.stObj.sender />

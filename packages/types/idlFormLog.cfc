@@ -24,7 +24,7 @@
 	<cfproperty name="formID" type="uuid" hint="the ID of the form being logged" required="yes">
 	<cfproperty name="title" type="string" hint="Form title" required="yes" default="">
 	<cfproperty name="description" type="longchar" hint="Description / introdoctury text for the form" required="no" default="">
-	<cfproperty name="receiver" type="string" hint="E-mail address of the receiver of the form" required="no" default="">
+	<cfproperty name="receiver" type="longchar" hint="E-mail address of the receiver of the form" required="no" default="">
 	
 	<!--- create log file --->
 
