@@ -445,6 +445,9 @@
 						<cfif stObjFormItem.type IS "textarea">
 							<cfset validationRule = validationRule & ' cols="#minLength#" maxlength="#maxLength#"'>
 						<cfelse>
+							<cfif minLength IS "">
+								<cfset minLength = 0 />
+							</cfif>
 							<cfset validationRule = validationRule & ' pattern=".{#minLength#,#maxLength#}"'>
 						</cfif>
 					</cfif>
