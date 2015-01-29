@@ -356,7 +356,7 @@
 						
 							<cfloop index="i" to="#arrayLen(stForm.aReceiverIDs)#" from="1">
 								<cfset stTmpReceiver = application.fapi.getContentObject(objectID=stForm.aReceiverIDs[i]) />
-								<cfif isValid("email", stTmpReceiver.email)>
+								<cfif trim(stTmpReceiver.email) NEQ "">
 									<cfoutput><option value="#stTmpReceiver.objectID#">#stTmpReceiver.label#</option></cfoutput>
 								</cfif>
 							</cfloop>
