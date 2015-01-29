@@ -31,9 +31,8 @@
 	typename="idlForm"
 	permissionset="news"
 	title="#application.rb.getResource("idlform.customadmin@label","Forms")#"
-	columnList="title,receiver,datetimelastUpdated"
-	sortableColumns="title,receiver,datetimelastUpdated"
-	lFilterFields="title,receiver"
+	columnList="title,sender,datetimelastUpdated"
+	sortableColumns="title,sender,datetimelastUpdated"
 	plugin="idlform"
 	module="/idlForm.cfm" />
 
