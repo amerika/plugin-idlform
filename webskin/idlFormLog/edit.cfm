@@ -21,47 +21,47 @@
 <!--- @@description: --->
 <!--- @@author: Jørgen M. Skogås (jorgen@amerika.no) --->
 
-<cfimport taglib="/farcry/core/tags/admin" prefix="admin" />
 <cfimport taglib="/farcry/core/tags/formtools" prefix="ft" />
 
-<!--- set up page header --->
-<admin:header title="Form log item" />
+<cftry>
 	
-	<cfquery name="qLogItems" datasource="#application.dsn#">
-		SELECT *
-		FROM idlFormLogItem
-		WHERE formLogID = '#url.objectID#'
+<cfparam name="url.id" type="string" default="#url.objectID#" />
+
+<cfquery name="qLogItems" datasource="#application.dsn#">
+	SELECT *
+	FROM idlFormLogItem
+	WHERE formLogID = '#url.objectID#'
+</cfquery>
+
+<cfloop query="qLogItems">
+	<!--- qLogItems are not save with FarCry API, so we need to add them to refObjects so we can edit them with FarCry --->
+	<!--- Only add the object to refObjects if not exists already --->
+	<cfquery name="q" datasource="#application.dsn#">
+		IF NOT EXISTS (SELECT * FROM refObjects WHERE objectID = '#qLogItems.objectID#')
+			BEGIN
+				-- INSERT HERE
+				INSERT INTO refObjects (objectID, typename)
+				VALUES ('#qLogItems.objectID#', 'idlFormLogItem')
+			END
 	</cfquery>
+</cfloop>
 
-	<cfloop query="qLogItems">
-		<!--- qLogItems are not save with FarCry API, so we need to add them to refObjects so we can edit them with FarCry --->
-		<!--- Only add the object to refObjects if not exists already --->
-		<cfquery name="q" datasource="#application.dsn#">
-			IF NOT EXISTS (SELECT * FROM refObjects WHERE objectID = '#qLogItems.objectID#')
-				BEGIN
-					-- INSERT HERE
-					INSERT INTO refObjects (objectID, typename)
-					VALUES ('#qLogItems.objectID#', 'idlFormLogItem')
-				END
-		</cfquery>
-	</cfloop>
-
-	<ft:objectadmin 
-		typename="idlFormLogItem"
-		permissionset="news"
-		title="Form log elements"
-		columnList="title,value,datetimelastUpdated"
-		sortableColumns="title,value,datetimelastUpdated"
-		sqlWhere="formLogID = '#url.objectID#' AND DATALENGTH(title) > 0 AND title != 'pageID'"
-		sqlorderby="title ASC"
-		lButtons=""
-		bSelectCol="false"
-		bEditCol="true"
-		bViewCol="false"
-		bPreviewCol="false"
-		bFlowCol="false" />
-
-<!--- setup footer --->
-<admin:footer />
+<ft:objectadmin 
+	typename="idlFormLogItem"
+	title="Form log elements"
+	columnList="title,value,datetimelastUpdated"
+	sortableColumns="title,value,datetimelastUpdated"
+	sqlWhere="formLogID = '#url.objectID#' AND DATALENGTH(title) > 0 AND title != 'pageID'"
+	sqlorderby="title ASC"
+	lButtons=""
+	bSelectCol="false"
+	bEditCol="true"
+	bViewCol="false"
+	bPreviewCol="false"
+	bFlowCol="false" />
+<cfcatch>
+	<cfdump var="#cfcatch#" />
+</cfcatch>
+</cftry>
 
 <cfsetting enablecfoutputonly="false" />
