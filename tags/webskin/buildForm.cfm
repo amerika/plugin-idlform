@@ -81,106 +81,100 @@
 		<cfset attributes.class = "idlform">
 	</cfif>
 
-	<cfif application.fapi.isLoggedIn() AND application.fapi.hasRole('sysadmin') AND (NOT application.idlform.bIdlFormCopied AND NOT application.idlform.bIdlFormAlias)>
-		<skin:bubble title="IDLmedia Form Plugin" sticky="true">
-			<cfoutput>#application.rb.getResource("idlform.buildform.messages.checkJsCss@text","You need to make an virtual directory in your webserver or copy the js and css into the project for the idlform plugin to work.")#</cfoutput>
-		</skin:bubble>
-	<cfelse>
-		<cfif application.idlform.bIdlFormAlias IS true OR application.idlform.bIdlFormCopied IS true>
-			<skin:loadJs id="jquery" />
-			<skin:loadJs id="uniformJS" />
-			<skin:loadCss id="uniformCSS" />
-			<skin:loadCss id="uniformTheme" />
-			<skin:loadJs id="modernizrJS" />
-			<skin:loadJs id="webshimJS" />
-			<skin:loadCss id="idlformCSS" />
-			<skin:onReady id="idlFormInline">
-				<cfoutput>
-					$j("form.idlform select, form.idlform input, form.idlform button, form.idlform textarea").uniform();
-					$j("form.idlform input:file").uniform({fileBtnText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@label","Choose")#&hellip;'});
-					$j("form.idlform input:file").uniform({fileDefaultText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@text","No file selected")#&hellip;'});
-					$j.webshims.setOptions("waitReady",false);
-					<cfif application.idlform.bIdlFormAlias>
-						$j.webshims.setOptions("basePath", "/idlform/js/js-webshim/dev/shims/");
-					<cfelse>	
-						$j.webshims.setOptions("basePath", "/js/js-webshim/dev/shims/");
-					</cfif>
-				
-					//The following to lines can be uncomented to accomodate translations of the webshim validation error messages. But if you set validation messages on the form element in the webtop this should not be necasarry
-					// $j.webshims.activeLang('no');
-					// $j.webshims.cfg.forms.availabeLangs.push('no');
+	<cfif application.fapi.getconfig("idlform", "settings", "uniform") IS "uniform" AND application.idlform.bIdlFormAlias IS true OR application.idlform.bIdlFormCopied IS true>
+		<skin:loadJs id="jquery" />
+		<skin:loadJs id="uniformJS" />
+		<skin:loadCss id="uniformCSS" />
+		<skin:loadCss id="uniformTheme" />
+		<skin:loadJs id="modernizrJS" />
+		<skin:loadJs id="webshimJS" />
+		<skin:loadCss id="idlformCSS" />
+		<skin:onReady id="idlFormInline">
+			<cfoutput>
+				$j("form.idlform select, form.idlform input, form.idlform button, form.idlform textarea").uniform();
+				$j("form.idlform input:file").uniform({fileBtnText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@label","Choose")#&hellip;'});
+				$j("form.idlform input:file").uniform({fileDefaultText: '#application.rb.getResource("idlform.buildform.uniform.fieldinput@text","No file selected")#&hellip;'});
+				$j.webshims.setOptions("waitReady",false);
+				<cfif application.idlform.bIdlFormAlias>
+					$j.webshims.setOptions("basePath", "/idlform/js/js-webshim/dev/shims/");
+				<cfelse>	
+					$j.webshims.setOptions("basePath", "/js/js-webshim/dev/shims/");
+				</cfif>
+			
+				//The following to lines can be uncomented to accomodate translations of the webshim validation error messages. But if you set validation messages on the form element in the webtop this should not be necasarry
+				// $j.webshims.activeLang('no');
+				// $j.webshims.cfg.forms.availabeLangs.push('no');
 
-					$j.webshims.setOptions('forms', {customMessages: true});
-				
-					$j.webshims.polyfill();
+				$j.webshims.setOptions('forms', {customMessages: true});
+			
+				$j.webshims.polyfill();
 
-					$j(function(){
-						$j('form.idlform')
-							.bind('invalid', function(e){
-								e.preventDefault();
-							})
-							.bind('firstinvalid', function(e){
-								$j.webshims.validityAlert.showFor(e.target, $j.attr(e.target, 'customValidationMessage'));
-								return false;
-							})
-						;
-					});
-					$j("form.idlform").submit(function(evt) {
-						var $btn = $j('form.idlform input:submit'),
-							$wrapper = $btn.parent(),
-							$uniformWrapper = $wrapper.parents('.button'),
-							btnMarkup = getOuterHTML($btn[0]),
-							defaultText = $btn.val(),
-							newText = defaultText,
-							animInterval,
-							nFrame = 0;
-							
-						if($uniformWrapper.hasClass('disabled') === true) {
-							evt.preventDefault();
-						} else {
-							$uniformWrapper.addClass('disabled');
-							setTimeout(function () {
-								$btn.prop('disabled', true);
-							}, 50);
-				
-							setTimeout(function () {
-								$uniformWrapper.removeClass('disabled');
-								$wrapper.text(defaultText).append(btnMarkup);
-								$btn.prop('disabled', false);
-								clearInterval(animInterval);
-							}, 3000);
-				
-							animInterval = setInterval(function () {
-								newText = newText + '.';
-							
-								nFrame++;
-							
-								if (nFrame > 3) {
-									newText = defaultText;
-									nFrame = 0;
-								}
-								$wrapper.text(newText).append(btnMarkup);
-								$btn.data('nFrame', nFrame);
-							}, 250);
-						}
-						function getOuterHTML(el) {
-							var wrapper = '';
-							if(el) {
-								var inner = el.innerHTML;
-								var wrapper = '<' + el.tagName;
-
-								for(var i = 0; i < el.attributes.length; i++) {
-									wrapper += ' ' + el.attributes[i].nodeName + '="';
-									wrapper += el.attributes[i].nodeValue + '"';
-								}
-								wrapper += '>' + inner + '</' + el.tagName + '>';
+				$j(function(){
+					$j('form.idlform')
+						.bind('invalid', function(e){
+							e.preventDefault();
+						})
+						.bind('firstinvalid', function(e){
+							$j.webshims.validityAlert.showFor(e.target, $j.attr(e.target, 'customValidationMessage'));
+							return false;
+						})
+					;
+				});
+				$j("form.idlform").submit(function(evt) {
+					var $btn = $j('form.idlform input:submit'),
+						$wrapper = $btn.parent(),
+						$uniformWrapper = $wrapper.parents('.button'),
+						btnMarkup = getOuterHTML($btn[0]),
+						defaultText = $btn.val(),
+						newText = defaultText,
+						animInterval,
+						nFrame = 0;
+						
+					if($uniformWrapper.hasClass('disabled') === true) {
+						evt.preventDefault();
+					} else {
+						$uniformWrapper.addClass('disabled');
+						setTimeout(function () {
+							$btn.prop('disabled', true);
+						}, 50);
+			
+						setTimeout(function () {
+							$uniformWrapper.removeClass('disabled');
+							$wrapper.text(defaultText).append(btnMarkup);
+							$btn.prop('disabled', false);
+							clearInterval(animInterval);
+						}, 3000);
+			
+						animInterval = setInterval(function () {
+							newText = newText + '.';
+						
+							nFrame++;
+						
+							if (nFrame > 3) {
+								newText = defaultText;
+								nFrame = 0;
 							}
-							return wrapper;
+							$wrapper.text(newText).append(btnMarkup);
+							$btn.data('nFrame', nFrame);
+						}, 250);
+					}
+					function getOuterHTML(el) {
+						var wrapper = '';
+						if(el) {
+							var inner = el.innerHTML;
+							var wrapper = '<' + el.tagName;
+
+							for(var i = 0; i < el.attributes.length; i++) {
+								wrapper += ' ' + el.attributes[i].nodeName + '="';
+								wrapper += el.attributes[i].nodeValue + '"';
+							}
+							wrapper += '>' + inner + '</' + el.tagName + '>';
 						}
-					});
-				</cfoutput>
-			</skin:onReady>
-		</cfif>
+						return wrapper;
+					}
+				});
+			</cfoutput>
+		</skin:onReady>
 	</cfif>
 
 	<!--- server side validation - In the future this should probably be moved to its own validate object --->
