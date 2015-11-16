@@ -14,7 +14,7 @@
 	along with this program. If not, see <http://www.gnu.org/licenses/>.
 --->
 
-<!--- @@displayname: configFootballClub.cfc --->
+<!--- @@displayname: configIdlForm.cfc --->
 <!--- @@description: There is no description for this template. Please add or remove this message. --->
 <!--- @@author: Jørgen M. Skogås (jorgen@amerika.no) on 2015-11-16 --->
 
@@ -25,7 +25,7 @@
 				
 	<cfproperty ftSeq="33" ftFieldset="Theme settings (js/css)"
 				name="settings" type="string" default="uniform"
-				ftLabel="Form theme" ftType="list" ftList="uniform:Uniform (tries the project first, then the plugin),none:Don't style my forms'" ftDefault="uniform"
+				ftLabel="Form theme" ftType="list" ftList="uniform:Uniform (checks project first then the plugin),none:Don't style my forms" ftDefault="uniform"
 				ftHint="The idlform plugin will default load the plugins theme (UniForm) - http://pixelmatrix.github.io/uniform/" />
 
 </cfcomponent>
