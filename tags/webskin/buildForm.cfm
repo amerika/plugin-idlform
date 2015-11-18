@@ -81,7 +81,7 @@
 		<cfset attributes.class = "idlform">
 	</cfif>
 
-	<cfif application.fapi.getconfig("idlform", "settings", "uniform") IS "uniform" AND application.idlform.bIdlFormAlias IS true OR application.idlform.bIdlFormCopied IS true>
+	<cfif application.fapi.getconfig("idlform", "settings", "uniform") IS "uniform" AND (application.idlform.bIdlFormAlias IS true OR application.idlform.bIdlFormCopied IS true)>
 		<skin:loadJs id="jquery" />
 		<skin:loadJs id="uniformJS" />
 		<skin:loadCss id="uniformCSS" />
