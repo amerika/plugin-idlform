@@ -247,12 +247,16 @@
 	</cffunction>
 	
 	<cffunction name="getConfirmationList" access="public" returntype="string" output="false" description="Creates a list with email field IDs and names">
-		<cfargument name="objectID" type="UUID" required="true" />
+		<cfargument name="objectID" type="string" required="false" default="" />
 		
 		<cfset var retList = ":--- Please select ---," />
-		<cfset var stWizardEditObject = getData(arguments.objectID) />
+		<cfset var stWizardEditObject = structNew() />
 		
-		<cfif arrayLen(stWizardEditObject.aFormItems) GT 0>
+		<cfif isValid("UUID", arguments.objectID)>
+			<cfset stWizardEditObject = getData(arguments.objectID) />
+		</cfif>
+		
+		<cfif structKeyExists(stWizardEditObject, "aFormItems") AND arrayLen(stWizardEditObject.aFormItems) GT 0>
 			<cfloop index="i" to="#arrayLen(stWizardEditObject.aFormItems)#" from="1">
 				<cfset stTempObj = application.fapi.getContentObject(stWizardEditObject.aFormItems[i]) />
 				<!--- Check if field are validating as email --->
