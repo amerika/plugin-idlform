@@ -9,7 +9,7 @@
 				ftLabel="Recaptcha Secret Key" />
 
 	<cfproperty ftSeq="3" ftWizardStep="Recaptcha" ftFieldset="Recaptcha"
-				name="recaptchaError" type="string" default="We think maybe you're a robot. Please try again!"
+				name="recaptchaError" type="string" default=""
 				ftLabel="Recaptcha Error message" />
 
 	<cfproperty name="titleProp" type="string" required="true" default="Global skjema" bLabel="true" hint="This property is only used to set the label" />
