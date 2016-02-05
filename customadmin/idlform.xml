@@ -5,5 +5,6 @@
 		<subsection sequence="1" id="idlformadminlist" label="Form List" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlform.cfm" relatedtype="idlForm" />
 		<subsection sequence="2" id="idlformreportcreate" label="Create Report" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformReports.cfm" />
 		<subsection sequence="3" id="idlformlogview" label="View Logs" link="/admin/customadmin.cfm?plugin=idlform&amp;module=idlformLog.cfm" />
+		<subsection sequence="4" id="idlformglobalconfig" label="Global form config" link="/admin/customadmin.cfm?plugin=idlquickfixcms&amp;module=idlConfig.cfm&amp;typename=idlformGlobalconfig" icon="farconfig" />
 	</section>
 </webtop>

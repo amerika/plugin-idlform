@@ -82,6 +82,9 @@ PUT PRODUCTION OR DEFAULT CODE HERE
 
 <!--- disse må sjekkes om skal bruke alias url eller url til filer i prosjekter --->
 	
-	
+<cfset stStatus = createObject("component", application.stCoapi.idlformGlobalconfig.packagePath).updateGlobalFormConfigKeys() />
+<cfif stStatus.bSuccess IS false AND application.fapi.hasRole('sysadmin')>
+	<skin:bubble title="idlformGlobalconfig" message="#stStatus.message#" tags="system" />
+</cfif>
 
 <cfsetting enablecfoutputonly="no">

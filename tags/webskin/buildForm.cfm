@@ -270,6 +270,7 @@
 					<!--- add info to the error message --->
 					<cfset errorMessage = Insert("<span class='label'>#stObjFormItem.label#:</span> <span class='errortext'>#stObjFormItem.validateErrorMessage#</span><br />", errorMessage, Len(errorMessage)) />
 				</cfif>
+
 			
 				<cfcatch>
 					<cfif stObjFormItem.validateRequired IS 1>
@@ -278,6 +279,19 @@
 				</cfcatch>
 			</cftry>
 		</cfloop>
+		
+		<cfif structKeyExists(application, "stGlobalFormConfig") AND trim(application.stGlobalFormConfig.recaptchaID) NEQ "">
+			<cfhttp url="https://www.google.com/recaptcha/api/siteverify" method="post" result="recaptchaResponse">
+				<cfhttpparam type="formfield" name="response" value="#form['G-RECAPTCHA-RESPONSE']#" />
+				<cfhttpparam type="formfield" name="secret" value="#trim(application.stGlobalFormConfig.recaptchaSecret)#" />
+			</cfhttp>
+			<cfset validationSuccess = DeserializeJSON(recaptchaResponse.fileContent).success />
+			<cfif validationSuccess IS false>
+				<cfset bFormDataValid = false />
+				<cfset errorMessage = Insert("<span class='label'>reCAPTCHA</span> <span class='errortext'>#application.stGlobalFormConfig.recaptchaError#</span><br />", errorMessage, Len(errorMessage)) />
+			</cfif>
+		</cfif>
+
 	</cfif>
 	
 	<!--- check if form is submitted and validation passed --->
@@ -600,7 +614,17 @@
 					<cfif stObjFormItem.linebreak is 1><cfoutput><div class="clear"></div></cfoutput></cfif>
 				</cfif>
 			</cfloop>
+
+
+			<!--- recaptcha --->
+			<cfif structKeyExists(application, "stGlobalFormConfig") AND trim(application.stGlobalFormConfig.recaptchaID) NEQ "">
+				<cfoutput>
+					<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+					<div class="g-recaptcha" data-sitekey="#trim(application.stGlobalFormConfig.recaptchaID)#"></div>
+				</cfoutput>
+			</cfif>
 			
+
 			<cfoutput>
 				<label for="submitidlform" class="submit">&nbsp;</label>
 				<input type="submit" class="submit" value="#attributes.submittext#" name="submitidlform" />
