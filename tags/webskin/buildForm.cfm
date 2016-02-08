@@ -273,15 +273,15 @@
 			</cftry>
 		</cfloop>
 
-		<cfif structKeyExists(application, "stGlobalFormConfig") AND trim(application.stGlobalFormConfig.recaptchaID) NEQ "">
+		<cfif application.fapi.getconfig("idlform", "recaptchaID") NEQ "">
 			<cfhttp url="https://www.google.com/recaptcha/api/siteverify" method="post" result="recaptchaResponse">
 				<cfhttpparam type="formfield" name="response" value="#form['G-RECAPTCHA-RESPONSE']#" />
-				<cfhttpparam type="formfield" name="secret" value="#trim(application.stGlobalFormConfig.recaptchaSecret)#" />
+				<cfhttpparam type="formfield" name="secret" value="#trim(application.fapi.getconfig("idlform", "recaptchaSecret"))#" />
 			</cfhttp>
 			<cfset validationSuccess = DeserializeJSON(recaptchaResponse.fileContent).success />
 			<cfif validationSuccess IS false>
 				<cfset bFormDataValid = false />
-				<cfset errorMessage = Insert("<span class='label'>reCAPTCHA</span> <span class='errortext'>#application.stGlobalFormConfig.recaptchaError#</span><br />", errorMessage, Len(errorMessage)) />
+				<cfset errorMessage = Insert("<span class='label'>reCAPTCHA</span> <span class='errortext'>#application.fapi.getconfig("idlform", "recaptchaError")#</span><br />", errorMessage, Len(errorMessage)) />
 			</cfif>
 		</cfif>
 		
@@ -609,10 +609,10 @@
 			</cfloop>
 
 			<!--- recaptcha --->
-			<cfif structKeyExists(application, "stGlobalFormConfig") AND trim(application.stGlobalFormConfig.recaptchaID) NEQ "">
+			<cfif application.fapi.getconfig("idlform", "recaptchaID") NEQ "">
 				<cfoutput>
 					<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-					<div class="g-recaptcha" data-sitekey="#trim(application.stGlobalFormConfig.recaptchaID)#"></div>
+					<div class="g-recaptcha" data-sitekey="#trim(application.fapi.getconfig("idlform", "recaptchaID"))#"></div>
 				</cfoutput>
 			</cfif>
 			

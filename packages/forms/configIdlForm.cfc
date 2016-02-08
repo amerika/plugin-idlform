@@ -23,9 +23,21 @@
 	<!--- Properties
 	////////////////////////////////////////////////////////////////////////////////////////////////////// --->
 				
-	<cfproperty ftSeq="33" ftFieldset="Theme settings (js/css)"
+	<cfproperty ftSeq="10" ftFieldset="Theme settings (js/css)"
 				name="settings" type="string" default="uniform"
 				ftLabel="Form theme" ftType="list" ftList="uniform:Uniform (checks project first then the plugin),none:Don't style my forms" ftDefault="uniform"
 				ftHint="The idlform plugin will default load the plugins theme (UniForm) - http://pixelmatrix.github.io/uniform/" />
+				
+	<cfproperty ftSeq="20" ftWizardStep="Recaptcha" ftFieldset="Recaptcha"
+				name="recaptchaID" type="string" default=""
+				ftLabel="Recaptcha Site Key" />
+
+	<cfproperty ftSeq="21" ftWizardStep="Recaptcha" ftFieldset="Recaptcha"
+				name="recaptchaSecret" type="string" default=""
+				ftLabel="Recaptcha Secret Key" />
+
+	<cfproperty ftSeq="22" ftWizardStep="Recaptcha" ftFieldset="Recaptcha"
+				name="recaptchaError" type="string" default=""
+				ftLabel="Recaptcha Error message" />
 
 </cfcomponent>
