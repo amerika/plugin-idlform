@@ -611,7 +611,7 @@
 			<!--- recaptcha --->
 			<cfif application.fapi.getconfig("idlform", "recaptchaSiteKey", "") NEQ "">
 				<cfoutput>
-					<script src="https://www.google.com/recaptcha/api.js?hl=#application.fapi.getconfig('idlform', 'recaptchaLanguage', 'en')#" async defer></script>
+					<script src="https://www.google.com/recaptcha/api.js?hl=#application.fapi.getconfig('idlform', 'recaptchaLanguage', '')#" async defer></script>
 					<div class="g-recaptcha" data-sitekey="#trim(application.fapi.getconfig("idlform", "recaptchaSiteKey"))#" data-theme="#application.fapi.getconfig("idlform", "recaptchaTheme", "light")#"  ></div>
 				</cfoutput>
 			</cfif>
