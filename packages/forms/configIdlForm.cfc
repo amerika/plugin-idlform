@@ -28,15 +28,16 @@
 				ftLabel="Form theme" ftType="list" ftList="uniform:Uniform (checks project first then the plugin),none:Don't style my forms" ftDefault="uniform"
 				ftHint="The idlform plugin will default load the plugins theme (UniForm) - http://pixelmatrix.github.io/uniform/" />
 				
-	<cfproperty ftSeq="20" ftWizardStep="Recaptcha" ftFieldset="Recaptcha"
-				name="recaptchaID" type="string" default=""
-				ftLabel="Recaptcha Site Key" />
+	<cfproperty ftSeq="20" ftFieldset="Google reCAPTCHA"
+				name="recaptchaSiteKey" type="string" default=""
+				ftLabel="Recaptcha Site Key"
+				ftHint='Add new reCAPTCHA site here: <a href="https://www.google.com/recaptcha/admin" target="_blank">https://www.google.com/recaptcha/admin</a>' />
 
-	<cfproperty ftSeq="21" ftWizardStep="Recaptcha" ftFieldset="Recaptcha"
+	<cfproperty ftSeq="21" ftFieldset="Google reCAPTCHA"
 				name="recaptchaSecret" type="string" default=""
 				ftLabel="Recaptcha Secret Key" />
 
-	<cfproperty ftSeq="22" ftWizardStep="Recaptcha" ftFieldset="Recaptcha"
+	<cfproperty ftSeq="22" ftFieldset="Google reCAPTCHA"
 				name="recaptchaError" type="string" default=""
 				ftLabel="Recaptcha Error message" />
 
