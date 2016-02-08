@@ -40,5 +40,11 @@
 	<cfproperty ftSeq="22" ftFieldset="Google reCAPTCHA"
 				name="recaptchaError" type="string" default=""
 				ftLabel="Recaptcha Error message" />
+				
+	<cfproperty ftSeq="25" ftFieldset="Google reCAPTCHA"
+				name="recaptchaTheme" type="string" default=""
+				ftLabel="Recaptcha Theme" ftType="list" ftList="light:Light theme,dark:Dark Theme" />
+				
+				
 
 </cfcomponent>
