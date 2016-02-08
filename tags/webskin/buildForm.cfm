@@ -273,7 +273,7 @@
 			</cftry>
 		</cfloop>
 
-		<cfif application.fapi.getconfig("idlform", "recaptchaSiteKey") NEQ "">
+		<cfif application.fapi.getconfig("idlform", "recaptchaSiteKey", "") NEQ "">
 			<cfhttp url="https://www.google.com/recaptcha/api/siteverify" method="post" result="recaptchaResponse">
 				<cfhttpparam type="formfield" name="response" value="#form['G-RECAPTCHA-RESPONSE']#" />
 				<cfhttpparam type="formfield" name="secret" value="#trim(application.fapi.getconfig("idlform", "recaptchaSecret"))#" />
@@ -609,7 +609,7 @@
 			</cfloop>
 
 			<!--- recaptcha --->
-			<cfif application.fapi.getconfig("idlform", "recaptchaSiteKey") NEQ "">
+			<cfif application.fapi.getconfig("idlform", "recaptchaSiteKey", "") NEQ "">
 				<cfoutput>
 					<script src="https://www.google.com/recaptcha/api.js?hl=#application.fapi.getconfig('idlform', 'recaptchaLanguage', 'en')#" async defer></script>
 					<div class="g-recaptcha" data-sitekey="#trim(application.fapi.getconfig("idlform", "recaptchaSiteKey"))#" data-theme="#application.fapi.getconfig("idlform", "recaptchaTheme", "light")#"  ></div>
