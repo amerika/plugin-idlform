@@ -313,7 +313,7 @@
 		<cfsavecontent variable="tagoutput">
 			<!--- confirmation: respons to the user  --->
 			<cfoutput>
-				<div id="#attributes.id#" class="idlConfirmation">
+				<div class="idlConfirmation idl-form-wrapper">
 					#attributes.sendtText#
 				</div>
 			</cfoutput>
@@ -322,7 +322,7 @@
 	<cfelse>
 		
 		<cfoutput>
-			<div id="#attributes.id#">
+			<div class="idlform-form-wrapper">
 		</cfoutput>
 	
 		<cfif Len(errormessage) gt 0>
@@ -623,7 +623,7 @@
 				  
 			</cfoutput>
 			
-			<!--- Close attributes.id div --->
+			<!--- Close .idlform-form-wrapper --->
 			<cfoutput>
 				</div>
 			</cfoutput>
