@@ -178,7 +178,7 @@
 	</cfif>
 
 	<!--- server side validation - In the future this should probably be moved to its own validate object --->
-	<cfif StructKeyExists(form,"submitidlform")>
+	<cfif StructKeyExists(form,"submitidlform") AND structKeyExists(form, "formObjectID") AND form.formObjectID EQ attributes.objectID>
 		<!--- Loop through the form items --->
 		<cfloop from="1" to="#arrayLen(attributes.aFormItems)#" index="i">
 			<cftry>
@@ -288,14 +288,14 @@
 	</cfif>
 	
 	<!--- check if form is submitted and validation passed --->
-	<cfif StructKeyExists(form,"submitidlform") and Len(errormessage) is 0>
+	<cfif StructKeyExists(form,"submitidlform") AND structKeyExists(form, "formObjectID") AND form.formObjectID EQ attributes.objectID AND Len(errormessage) is 0>
 		
 		<!--- send the content of the submited form by e-mail --->
 		<cfset stSubmitForm = createObject("component", application.stCoapi.idlForm.packagepath).submit(objectID=#attributes.objectID#,formData=#form#) />
 		<cfset session.stSubmitForm = stSubmitForm />
 		
 		<cfif stSubmitForm.bSuccess is true>
-			<cflocation url="#formActionURL#?bFormSaved=true###attributes.id#" addtoken="false" />
+			<cflocation url="#formActionURL#?bFormSaved=true&formObjectID=#attributes.objectID####attributes.id#" addtoken="false" />
 		<cfelse>
 			<!--- Here we output if something went wrong - the different messages have not been througly tested yet --->
 			<cfoutput>
@@ -307,7 +307,7 @@
 			</cfoutput>
 		</cfif>
 
-	<cfelseif structkeyexists(url, "bFormSaved")>
+	<cfelseif structkeyexists(url, "bFormSaved") AND structKeyExists(url, "formObjectID") AND url.formObjectID EQ attributes.objectID>
 		
 		<!--- Form is saved --->
 		<cfsavecontent variable="tagoutput">
@@ -617,6 +617,7 @@
 			</cfif>
 			
 			<cfoutput>
+				<input type="hidden" name="formObjectID" value="#attributes.objectID#" />
 				<label for="submitidlform" class="submit">&nbsp;</label>
 				<input type="submit" class="submit" value="#attributes.submittext#" name="submitidlform" />
 			</form>
